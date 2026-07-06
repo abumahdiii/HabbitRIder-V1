@@ -72,3 +72,6 @@ Thumbs.db
 # Gemini ignore configuration
 .geminiignore
 
+# Runtime local database
+.agents/data/
+

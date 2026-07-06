@@ -1,142 +1,201 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useActionState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { loginAction, signupAction } from '../actions/auth';
+import { loginAction, signupAction, ActionState } from '../actions/auth';
+import { useFormStatus } from 'react-dom';
+import { toast } from 'sonner';
+
+function SubmitButton({ isLogin }: { isLogin: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full btn-3d btn-3d-primary mt-6 text-base font-black disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none transition-all"
+    >
+      {pending ? (
+        <span className="flex items-center justify-center gap-2">
+          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          در حال سوار شدن...
+        </span>
+      ) : isLogin ? (
+        'ورود به پیست مسابقه 🚀'
+      ) : (
+        'ثبت‌نام و شروع بازی 🏁'
+      )}
+    </button>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  const [state, formAction] = useActionState(
+    async (prevState: ActionState | null, formData: FormData) => {
+      const username = formData.get('username') as string;
+      const password = formData.get('password') as string;
+      const displayName = formData.get('displayName') as string;
 
-    try {
-      if (isLogin) {
-        const res = await loginAction(username, password);
-        if (res.success) {
-          router.push('/');
-          router.refresh();
-        } else {
-          setError(res.error || 'خطایی رخ داد.');
-        }
-      } else {
-        const res = await signupAction(username, password, displayName);
-        if (res.success) {
-          router.push('/');
-          router.refresh();
-        } else {
-          setError(res.error || 'خطایی رخ داد.');
-        }
+      if (!username || !username.trim()) {
+        return { success: false, error: 'نام کاربری نمی‌تواند خالی باشد.' };
       }
-    } catch (err) {
-      setError('ارتباط با سرور برقرار نشد.');
-      console.error(err);
-    } finally {
-      setLoading(false);
+      if (!password) {
+        return { success: false, error: 'رمز عبور را وارد نکرده‌اید.' };
+      }
+
+      try {
+        if (isLogin) {
+          const res = await loginAction(username, password);
+          if (res.success) {
+            router.push('/');
+            router.refresh();
+          }
+          return res;
+        } else {
+          if (!displayName || !displayName.trim()) {
+            return { success: false, error: 'نام نمایشی برای جدول امتیازات الزامی است.' };
+          }
+          const res = await signupAction(username, password, displayName);
+          if (res.success) {
+            router.push('/');
+            router.refresh();
+          }
+          return res;
+        }
+      } catch (err) {
+        console.error(err);
+        return { success: false, error: 'برقراری ارتباط با سرور با خطا مواجه شد.' };
+      }
+    },
+    null
+  );
+
+  useEffect(() => {
+    if (!state) return;
+
+    if (state.success) {
+      toast.success(isLogin ? 'ورود با موفقیت انجام شد! 🚀' : 'ثبت‌نام با موفقیت انجام شد! 🏁');
+    } else if (state.error) {
+      toast.error(state.error);
     }
-  };
+  }, [state, isLogin]);
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-6 bg-zinc-50 dark:bg-zinc-900" dir="rtl">
+    <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-zinc-50 dark:bg-slate-950 transition-colors duration-300" dir="rtl">
       
-      {/* Mascot and Title */}
-      <div className="text-center mb-6">
-        <div className="text-6xl mb-2 animate-bounce">🐰</div>
-        <h1 className="text-3xl font-extrabold text-primary mb-1">هبیت رایدر | HabbitRider</h1>
-        <p className="text-text-muted text-sm font-semibold">عادت‌هاتو سوار شو و رقابت کن!</p>
+      {/* Playful Brand Header */}
+      <div className="text-center mb-8 animate-pop">
+        <div className="relative inline-block mb-3">
+          {/* Animated Mascot */}
+          <div className="text-6xl select-none animate-float filter drop-shadow-sm bg-gradient-to-tr from-primary/15 to-secondary/15 p-5 rounded-full border border-card-border">
+            {isLogin ? '🐰' : '🦊'}
+          </div>
+          <span className="absolute -top-1 -right-2 text-2xl animate-bounce">⚡</span>
+        </div>
+        
+        <h1 className="text-3xl font-black tracking-tight mb-2 drop-shadow-xs text-text-main dark:text-white">
+          <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">هبیت رایدر</span> <span className="font-num text-lg font-black opacity-90">| HabbitRider</span>
+        </h1>
+        <p className="text-text-muted text-xs font-bold max-w-xs mx-auto leading-relaxed">
+          {isLogin 
+            ? 'خوش آمدید! برای ادامه رقابت روزانه وارد حساب کاربری خود شوید.' 
+            : 'عادت‌های خود را به بازی تبدیل کنید و با دوستانتان مسابقه دهید!'}
+        </p>
       </div>
 
-      <div className="w-full max-w-md card-playful">
-        {/* Tab Buttons */}
-        <div className="flex border-b-2 border-card-border mb-6">
+      {/* Main Container */}
+      <div className="w-full max-w-md card-playful p-6 md:p-8 animate-pop">
+        
+        {/* Playful Tabs */}
+        <div className="flex bg-zinc-200/40 dark:bg-slate-800/30 p-1.5 rounded-2xl mb-8 border border-card-border/50">
           <button
-            onClick={() => { setIsLogin(true); setError(''); }}
-            className={`flex-1 py-3 text-center font-bold text-lg border-b-4 transition-all ${
+            type="button"
+            onClick={() => setIsLogin(true)}
+            className={`flex-1 py-2.5 text-center font-black text-xs rounded-xl transition-all duration-300 ${
               isLogin 
-                ? 'border-primary text-primary' 
-                : 'border-transparent text-text-muted hover:text-text-main'
+                ? 'bg-white dark:bg-slate-800 text-primary shadow-xs scale-[1.01]' 
+                : 'text-text-muted hover:text-text-main hover:bg-zinc-200/30 dark:hover:bg-slate-800/20'
             }`}
           >
             ورود به حساب
           </button>
           <button
-            onClick={() => { setIsLogin(false); setError(''); }}
-            className={`flex-1 py-3 text-center font-bold text-lg border-b-4 transition-all ${
+            type="button"
+            onClick={() => setIsLogin(false)}
+            className={`flex-1 py-2.5 text-center font-black text-xs rounded-xl transition-all duration-300 ${
               !isLogin 
-                ? 'border-primary text-primary' 
-                : 'border-transparent text-text-muted hover:text-text-main'
+                ? 'bg-white dark:bg-slate-800 text-primary shadow-xs scale-[1.01]' 
+                : 'text-text-muted hover:text-text-main hover:bg-zinc-200/30 dark:hover:bg-slate-800/20'
             }`}
           >
-            ثبت‌نام جدید
+            عضویت جدید
           </button>
         </div>
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-4 p-3 rounded-xl bg-danger/10 border-2 border-danger text-danger text-sm font-bold text-center">
-            ⚠️ {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Auth Form */}
+        <form action={formAction} className="space-y-5">
           {!isLogin && (
-            <div>
-              <label className="block text-sm font-bold text-text-main mb-2">نام نمایشی (لیدربرد):</label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="نام شما در لیدربرد (مثل: خرگوش زرنگ)"
-                className="w-full p-3 rounded-xl border-2 border-card-border bg-background text-text-main focus:outline-none focus:border-primary transition-all font-semibold"
-                required={!isLogin}
-              />
+            <div className="space-y-2">
+              <label htmlFor="signup-displayname" className="block text-xs font-black text-text-main dark:text-slate-200">
+                نام نمایشی در جدول رقابت:
+              </label>
+              <div className="relative">
+                <input
+                  id="signup-displayname"
+                  name="displayName"
+                  type="text"
+                  placeholder="مثال: سوپر هیرو، دونده سرعت"
+                  className="w-full px-4 py-3 rounded-2xl border border-card-border bg-zinc-500/5 text-text-main placeholder-text-muted/40 focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all font-bold text-sm"
+                  required={!isLogin}
+                />
+                <span className="absolute left-4 top-3 text-lg select-none">👑</span>
+              </div>
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-bold text-text-main mb-2">نام کاربری:</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="username"
-              className="w-full p-3 rounded-xl border-2 border-card-border bg-background text-text-main focus:outline-none focus:border-primary transition-all font-semibold"
-              required
-            />
+          <div className="space-y-2">
+            <label htmlFor="login-username" className="block text-xs font-black text-text-main dark:text-slate-200">
+              نام کاربری:
+            </label>
+            <div className="relative">
+              <input
+                id="login-username"
+                name="username"
+                type="text"
+                placeholder="username"
+                className="w-full px-4 py-3 rounded-2xl border border-card-border bg-zinc-500/5 text-text-main placeholder-text-muted/40 focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all font-bold text-sm font-num"
+                required
+              />
+              <span className="absolute left-4 top-3 text-lg select-none">👤</span>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-bold text-text-main mb-2">رمز عبور:</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full p-3 rounded-xl border-2 border-card-border bg-background text-text-main focus:outline-none focus:border-primary transition-all font-semibold"
-              required
-            />
+          <div className="space-y-2">
+            <label htmlFor="login-password" className="block text-xs font-black text-text-main dark:text-slate-200">
+              رمز عبور:
+            </label>
+            <div className="relative">
+              <input
+                id="login-password"
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-2xl border border-card-border bg-zinc-500/5 text-text-main placeholder-text-muted/40 focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all font-bold text-sm font-num"
+                required
+              />
+              <span className="absolute left-4 top-3 text-lg select-none">🔑</span>
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full btn-3d btn-3d-primary mt-4"
-          >
-            {loading ? 'در حال پردازش...' : isLogin ? 'ورود' : 'ثبت نام و ایجاد حساب'}
-          </button>
+          <SubmitButton isLogin={isLogin} />
         </form>
       </div>
 
-      <footer className="mt-8 text-center text-xs text-text-muted">
-        تمام ارتباطات امن بوده و نشست شما به مدت ۱ هفته در سیستم باقی می‌ماند.
+      {/* Playful Footer */}
+      <footer className="mt-8 text-center text-[10px] text-text-muted font-bold max-w-sm leading-relaxed">
+        🛡️ تمامی اطلاعات به صورت رمزگذاری شده نگهداری می‌شوند. با عضویت در هبیت رایدر، به یکی از سوارکاران عادت‌ها تبدیل خواهید شد!
       </footer>
     </div>
   );

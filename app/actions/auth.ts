@@ -1,12 +1,19 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { findUserByUsername, createServerUser, updateUserDisplayName, getAllUsers, saveAllUsers, ServerUser } from '../services/serverDb';
+import { findUserByUsername, createServerUser, updateUserDisplayName, updateUserProfile, getAllUsers, saveAllUsers, ServerUser, saveCopyrightReport, CopyrightReport } from '../services/serverDb';
 
 const SESSION_COOKIE_NAME = 'habbitrider_session';
 
+export type ActionState<T = null> = {
+  success: boolean;
+  data?: T;
+  error?: string;
+  errors?: Record<string, string[]>;
+};
+
 // Helper for DEV_MODE logs
-function logDebug(message: string, ...args: any[]) {
+function logDebug(message: string, ...args: unknown[]) {
   if (process.env.DEV_MODE === 'true' || process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
     console.log(`[AUTH ACTION DEBUG] ${message}`, ...args);
   }
@@ -31,7 +38,7 @@ export async function getAuthUser(): Promise<ServerUser | null> {
   return user;
 }
 
-export async function loginAction(username: string, passwordHash: string): Promise<{ success: boolean; error?: string }> {
+export async function loginAction(username: string, passwordHash: string): Promise<ActionState> {
   logDebug(`Login attempt for username: ${username}`);
   
   if (!username.trim() || !passwordHash) {
@@ -57,7 +64,7 @@ export async function loginAction(username: string, passwordHash: string): Promi
   return { success: true };
 }
 
-export async function signupAction(username: string, passwordHash: string, displayName: string): Promise<{ success: boolean; error?: string }> {
+export async function signupAction(username: string, passwordHash: string, displayName: string): Promise<ActionState> {
   logDebug(`Signup attempt for username: ${username}`);
   
   if (!username.trim() || !passwordHash || !displayName.trim()) {
@@ -86,7 +93,7 @@ export async function signupAction(username: string, passwordHash: string, displ
   return { success: true };
 }
 
-export async function logoutAction(): Promise<{ success: boolean }> {
+export async function logoutAction(): Promise<ActionState> {
   logDebug('Logout requested.');
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE_NAME);
@@ -94,7 +101,7 @@ export async function logoutAction(): Promise<{ success: boolean }> {
   return { success: true };
 }
 
-export async function updateDisplayNameAction(displayName: string): Promise<{ success: boolean; error?: string; user?: ServerUser }> {
+export async function updateDisplayNameAction(displayName: string): Promise<ActionState<ServerUser>> {
   logDebug(`Request to update display name to: ${displayName}`);
   const user = await getAuthUser();
   if (!user) {
@@ -112,7 +119,31 @@ export async function updateDisplayNameAction(displayName: string): Promise<{ su
   }
 
   logDebug(`Display name successfully updated for ${user.username}`);
-  return { success: true, user: updated };
+  return { success: true, data: updated };
+}
+
+export async function updateProfileAction(displayName: string, avatar: string): Promise<ActionState<ServerUser>> {
+  logDebug(`Request to update profile to: name=${displayName}, avatar=${avatar}`);
+  const user = await getAuthUser();
+  if (!user) {
+    logDebug('Update profile failed: Unauthorized.');
+    return { success: false, error: 'شما لاگین نکرده‌اید.' };
+  }
+
+  if (!displayName.trim()) {
+    return { success: false, error: 'نام نمایشی نمی‌تواند خالی باشد.' };
+  }
+  if (!avatar.trim()) {
+    return { success: false, error: 'انتخاب آواتار الزامی است.' };
+  }
+
+  const updated = updateUserProfile(user.username, displayName, avatar);
+  if (!updated) {
+    return { success: false, error: 'کاربر یافت نشد.' };
+  }
+
+  logDebug(`Profile successfully updated for ${user.username}`);
+  return { success: true, data: updated };
 }
 
 export async function getLeaderboardAction(): Promise<ServerUser[]> {
@@ -123,10 +154,10 @@ export async function getLeaderboardAction(): Promise<ServerUser[]> {
   return sorted;
 }
 
-export async function addXpAction(xpAmount: number, streakChange: number = 0): Promise<{ success: boolean; user?: ServerUser }> {
+export async function addXpAction(xpAmount: number, streakChange: number = 0): Promise<ActionState<ServerUser>> {
   logDebug(`Adding ${xpAmount} XP and changing streak by ${streakChange} for active user...`);
   const user = await getAuthUser();
-  if (!user) return { success: false };
+  if (!user) return { success: false, error: 'عدم دسترسی' };
 
   const users = getAllUsers();
   const dbUser = users.find(u => u.username.toLowerCase() === user.username.toLowerCase());
@@ -136,9 +167,48 @@ export async function addXpAction(xpAmount: number, streakChange: number = 0): P
     dbUser.streak = Math.max(0, dbUser.streak + streakChange);
     saveAllUsers(users);
     logDebug(`User ${user.username} state updated. New XP: ${dbUser.xp}, Level: ${dbUser.level}, Streak: ${dbUser.streak}`);
-    return { success: true, user: dbUser };
+    return { success: true, data: dbUser };
   }
-  return { success: false };
+  return { success: false, error: 'کاربر یافت نشد' };
+}
+
+export async function reportCopyrightAction(
+  routineId: string,
+  routineTitle: string,
+  resourceName: string,
+  resourceUrl: string,
+  reason: string
+): Promise<ActionState> {
+  logDebug(`Copyright report request: routineId=${routineId}, resource=${resourceName}`);
+  const user = await getAuthUser();
+  if (!user) {
+    logDebug('Copyright report failed: Unauthorized.');
+    return { success: false, error: 'شما لاگین نکرده‌اید.' };
+  }
+
+  if (!reason.trim()) {
+    return { success: false, error: 'دلیل گزارش نمی‌تواند خالی باشد.' };
+  }
+
+  const report: CopyrightReport = {
+    id: 'report_' + Math.random().toString(36).substring(2, 9),
+    routineId,
+    routineTitle,
+    resourceName,
+    resourceUrl,
+    reportedBy: user.username,
+    reason: reason.trim(),
+    createdAt: Date.now(),
+  };
+
+  try {
+    saveCopyrightReport(report);
+    logDebug(`Copyright report registered successfully for user ${user.username}`);
+    return { success: true };
+  } catch (err) {
+    logDebug('Error registering copyright report:', err);
+    return { success: false, error: 'خطا در ثبت گزارش تخلف کپی‌رایت.' };
+  }
 }
 
 

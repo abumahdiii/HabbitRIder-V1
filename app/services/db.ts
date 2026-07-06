@@ -1,6 +1,13 @@
 // Promise-based IndexedDB Service for HabbitRider
 // Fully async/await compatible and client-side safe.
 
+export interface RoutineResource {
+  id: string;
+  name: string;
+  url: string; // web URL or local PDF Data URI
+  type: 'link' | 'pdf';
+}
+
 export interface Routine {
   id: string;
   title: string;
@@ -8,11 +15,9 @@ export interface Routine {
   schedule: {
     type: 'daily' | 'weekly' | 'monthly' | 'custom';
     days?: number[]; // 0 for Sunday, 1 for Monday, etc.
+    dayOfMonth?: number; // 1 to 31 for monthly schedule
   };
-  resources?: {
-    name: string;
-    url: string;
-  }[];
+  resources?: RoutineResource[];
   chapters?: {
     id: string;
     title: string;
@@ -20,8 +25,12 @@ export interface Routine {
   }[];
   streak: number;
   completedToday: boolean;
+  lastCompletedDate?: string; // YYYY-MM-DD
   createdAt: number;
   updatedAt: number;
+  isProgressive?: boolean;
+  currentProgressSession?: number;
+  totalProgressSessions?: number;
 }
 
 export interface UserProfile {
@@ -41,11 +50,11 @@ const STORE_ROUTINES = 'routines';
 const STORE_PROFILE = 'profile';
 
 // Helper for DEV_MODE guarded logging
-function logDebug(message: string, ...args: any[]) {
+function logDebug(message: string, ...args: unknown[]) {
   if (
     process.env.NEXT_PUBLIC_DEV_MODE === 'true' ||
     process.env.DEV_MODE === 'true' ||
-    (typeof window !== 'undefined' && (window as any).DEV_MODE === true)
+    (typeof window !== 'undefined' && (window as Window & { DEV_MODE?: boolean }).DEV_MODE === true)
   ) {
     console.log(`[DEBUG] ${message}`, ...args);
   }

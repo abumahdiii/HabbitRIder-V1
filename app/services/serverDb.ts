@@ -3,6 +3,7 @@ import path from 'path';
 
 const DATA_DIR = path.join(process.cwd(), '.agents', 'data');
 const DATA_FILE = path.join(DATA_DIR, 'users.json');
+const REPORTS_FILE = path.join(DATA_DIR, 'reports.json');
 
 export interface ServerUser {
   username: string;
@@ -15,7 +16,7 @@ export interface ServerUser {
 }
 
 // Helper for DEV_MODE logs
-function logDebug(message: string, ...args: any[]) {
+function logDebug(message: string, ...args: unknown[]) {
   if (process.env.DEV_MODE === 'true' || process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
     console.log(`[SERVER DEBUG] ${message}`, ...args);
   }
@@ -29,6 +30,17 @@ function ensureDataFile() {
   if (!fs.existsSync(DATA_FILE)) {
     logDebug(`Creating JSON db file: ${DATA_FILE}`);
     fs.writeFileSync(DATA_FILE, JSON.stringify([], null, 2), 'utf-8');
+  }
+}
+
+function ensureReportsFile() {
+  if (!fs.existsSync(DATA_DIR)) {
+    logDebug(`Creating directory: ${DATA_DIR}`);
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+  if (!fs.existsSync(REPORTS_FILE)) {
+    logDebug(`Creating JSON db file: ${REPORTS_FILE}`);
+    fs.writeFileSync(REPORTS_FILE, JSON.stringify([], null, 2), 'utf-8');
   }
 }
 
@@ -91,4 +103,50 @@ export function updateUserDisplayName(username: string, displayName: string): Se
     saveAllUsers(users);
   }
   return user;
+}
+
+export function updateUserProfile(username: string, displayName: string, avatar: string): ServerUser | undefined {
+  const users = getAllUsers();
+  const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+  if (user) {
+    logDebug(`Updating profile for user ${username}: name=${displayName}, avatar=${avatar}`);
+    user.displayName = displayName.trim();
+    user.avatar = avatar;
+    saveAllUsers(users);
+  }
+  return user;
+}
+
+// ==========================================
+// Copyright Violation Reports
+// ==========================================
+
+export interface CopyrightReport {
+  id: string;
+  routineId: string;
+  routineTitle: string;
+  resourceName: string;
+  resourceUrl: string;
+  reportedBy: string;
+  reason: string;
+  createdAt: number;
+}
+
+export function getAllCopyrightReports(): CopyrightReport[] {
+  ensureReportsFile();
+  try {
+    const raw = fs.readFileSync(REPORTS_FILE, 'utf-8');
+    return JSON.parse(raw);
+  } catch (e) {
+    logDebug('Error parsing reports.json database', e);
+    return [];
+  }
+}
+
+export function saveCopyrightReport(report: CopyrightReport) {
+  ensureReportsFile();
+  const reports = getAllCopyrightReports();
+  reports.push(report);
+  logDebug(`Saving new copyright report for resource: ${report.resourceName}`);
+  fs.writeFileSync(REPORTS_FILE, JSON.stringify(reports, null, 2), 'utf-8');
 }

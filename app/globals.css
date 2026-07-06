@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #3c3c3c;
+  
+  /* Duolingo Bright Colors */
+  --primary: #58cc02;       /* Vibrant Green */
+  --primary-down: #46a302;  /* Darker Green for 3D shadow */
+  --secondary: #1cb0f6;     /* Vibrant Blue */
+  --secondary-down: #1899d6;/* Darker Blue for 3D shadow */
+  --accent: #ffc200;        /* Vibrant Gold/Orange for Streaks */
+  --accent-down: #e6af00;   /* Darker Gold/Orange for 3D shadow */
+  --danger: #ff4b4b;        /* Vibrant Red for Hearts/Errors */
+  --danger-down: #ea4343;   /* Darker Red for 3D shadow */
+  
+  /* Interface Colors */
+  --card-bg: #ffffff;
+  --card-border: #e5e5e5;
+  --text-main: #3c3c3c;
+  --text-muted: #afafaf;
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-primary: var(--primary);
+  --color-primary-down: var(--primary-down);
+  --color-secondary: var(--secondary);
+  --color-secondary-down: var(--secondary-down);
+  --color-accent: var(--accent);
+  --color-accent-down: var(--accent-down);
+  --color-danger: var(--danger);
+  --color-danger-down: var(--danger-down);
+  
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #131f24;
+    --foreground: #f1f5f9;
+    
+    --card-bg: #1f2e35;
+    --card-border: #37464f;
+    --text-main: #f1f5f9;
+    --text-muted: #80939d;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-vazir), system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
+
+/* Playful 3D Buttons */
+.btn-3d {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.1s ease;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.875rem;
+}
+
+.btn-3d-primary {
+  background-color: var(--primary);
+  border-color: var(--primary-down);
+  color: #ffffff;
+  box-shadow: 0 4px 0 0 var(--primary-down);
+}
+.btn-3d-primary:hover {
+  filter: brightness(1.05);
+}
+.btn-3d-primary:active {
+  box-shadow: 0 0px 0 0 var(--primary-down);
+  transform: translateY(4px);
+}
+
+.btn-3d-secondary {
+  background-color: var(--secondary);
+  border-color: var(--secondary-down);
+  color: #ffffff;
+  box-shadow: 0 4px 0 0 var(--secondary-down);
+}
+.btn-3d-secondary:hover {
+  filter: brightness(1.05);
+}
+.btn-3d-secondary:active {
+  box-shadow: 0 0px 0 0 var(--secondary-down);
+  transform: translateY(4px);
+}
+
+.btn-3d-accent {
+  background-color: var(--accent);
+  border-color: var(--accent-down);
+  color: #ffffff;
+  box-shadow: 0 4px 0 0 var(--accent-down);
+}
+.btn-3d-accent:hover {
+  filter: brightness(1.05);
+}
+.btn-3d-accent:active {
+  box-shadow: 0 0px 0 0 var(--accent-down);
+  transform: translateY(4px);
+}
+
+.btn-3d-danger {
+  background-color: var(--danger);
+  border-color: var(--danger-down);
+  color: #ffffff;
+  box-shadow: 0 4px 0 0 var(--danger-down);
+}
+.btn-3d-danger:hover {
+  filter: brightness(1.05);
+}
+.btn-3d-danger:active {
+  box-shadow: 0 0px 0 0 var(--danger-down);
+  transform: translateY(4px);
+}
+
+/* Playful 3D Cards */
+.card-playful {
+  background-color: var(--card-bg);
+  border: 2px solid var(--card-border);
+  border-radius: 20px;
+  box-shadow: 0 4px 0 0 var(--card-border);
+  padding: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.card-playful:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 0 var(--card-border);
+}
+.card-playful:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 0 var(--card-border);
+}

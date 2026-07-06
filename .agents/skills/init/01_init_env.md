@@ -23,11 +23,11 @@ When invoked, you MUST act as a System Architect and Interviewer. Do NOT generat
 4. **Primary MVP:** What is the core objective or MVP for this specific phase?
 
 **Phase 2: File Customization (Execute ONLY after the interview is complete)**
-- **Update `AGENTS.md`:** Inject the specific tech stack and domain rules. You MUST strictly retain our foundational rule: "Rule 8 (Scripts Permission): do not run scripts until I tell you."
-- **Update `.geminiignore`:** Add framework-specific paths based on the interview (e.g., `.dart_tool/`, `go.sum`, `venv/`, compiled binaries).
+- **Create/Update `.gitignore`:** Ensure `.gitignore` exists at the root. Add `.geminiignore` and other environment/dependency paths to it.
+- **Update `AGENTS.md`:** Inject the specific tech stack and domain rules. Explicitly add a rule stating that all agent-specific files (e.g., plans, specifications, checklists) must reside inside `.agents/` and only `AGENTS.md` and `.geminiignore` are exceptions allowed in the root. You MUST strictly retain our foundational rule: "Rule 8 (Scripts Permission): do not run scripts until I tell you."
 - **Update `.agents/wiki/architecture.md`:** Summarize the project domain, architecture, and hardware/software boundaries discussed.
 - **Create `.env.example`:** Ensure that the `.env.example` file always includes `DEV_MODE=true` by default to control system-level runtime debugging.
-- **Create `.agents/spec.md`:** Draft the initial specifications based on the user's answers.
+- **Create `.agents/spec.md`:** Draft the initial specifications based on the user's answers inside the `.agents/` directory, keeping the project root clean.
 
 **Phase 3: Confirmation (in Persian)**
 - Present a bulleted summary of the files you updated/created in Persian.

@@ -22,7 +22,7 @@ Act as a strict DevOps Engineer. Communicate entirely in **Persian (Farsi)**.
 - Do NOT make any initial commits unless the user explicitly asks you to commit the template files.
 
 **Step 3: Feature Branch Preparation**
-- Based on the `master_plan.md` (which should be created by now), identify the active phase (e.g., Phase 1).
+- Based on the `.agents/plan/master_plan.md` (which should be created by now), identify the active phase (e.g., Phase 1).
 - Ask the user: *"آیا مایل هستید برنچ اختصاصی برای شروع فاز اول (مثلاً `feature/phase-1-init`) را هم‌اکنون ایجاد کنم؟"*
 - Wait for user confirmation before creating and checking out the new branch.
 

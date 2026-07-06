@@ -8,8 +8,10 @@ interface DashboardContextType {
   level: number;
   streak: number;
   displayName: string;
+  avatar: string;
   updateStats: (newXp: number, newLevel: number, newStreak: number) => void;
   updateDisplayName: (newName: string) => void;
+  updateAvatar: (newAvatar: string) => void;
   syncUser: (user: ServerUser) => void;
 }
 
@@ -26,6 +28,7 @@ export function DashboardProvider({
   const [level, setLevel] = useState(initialUser.level);
   const [streak, setStreak] = useState(initialUser.streak);
   const [displayName, setDisplayName] = useState(initialUser.displayName);
+  const [avatar, setAvatar] = useState(initialUser.avatar || '🦉');
 
   const updateStats = (newXp: number, newLevel: number, newStreak: number) => {
     setXp(newXp);
@@ -37,11 +40,16 @@ export function DashboardProvider({
     setDisplayName(newName);
   };
 
+  const updateAvatar = (newAvatar: string) => {
+    setAvatar(newAvatar);
+  };
+
   const syncUser = (user: ServerUser) => {
     setXp(user.xp);
     setLevel(user.level);
     setStreak(user.streak);
     setDisplayName(user.displayName);
+    setAvatar(user.avatar || '🦉');
   };
 
   return (
@@ -51,8 +59,10 @@ export function DashboardProvider({
         level,
         streak,
         displayName,
+        avatar,
         updateStats,
         updateDisplayName,
+        updateAvatar,
         syncUser,
       }}
     >

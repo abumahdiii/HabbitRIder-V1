@@ -92,3 +92,15 @@ export function updateUserDisplayName(username: string, displayName: string): Se
   }
   return user;
 }
+
+export function updateUserProfile(username: string, displayName: string, avatar: string): ServerUser | undefined {
+  const users = getAllUsers();
+  const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+  if (user) {
+    logDebug(`Updating profile for user ${username}: name=${displayName}, avatar=${avatar}`);
+    user.displayName = displayName.trim();
+    user.avatar = avatar;
+    saveAllUsers(users);
+  }
+  return user;
+}

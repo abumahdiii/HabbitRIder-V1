@@ -1,7 +1,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { findUserByUsername, createServerUser, updateUserDisplayName, getAllUsers, saveAllUsers, ServerUser } from '../services/serverDb';
+import { findUserByUsername, createServerUser, updateUserDisplayName, updateUserProfile, getAllUsers, saveAllUsers, ServerUser } from '../services/serverDb';
 
 const SESSION_COOKIE_NAME = 'habbitrider_session';
 
@@ -119,6 +119,30 @@ export async function updateDisplayNameAction(displayName: string): Promise<Acti
   }
 
   logDebug(`Display name successfully updated for ${user.username}`);
+  return { success: true, data: updated };
+}
+
+export async function updateProfileAction(displayName: string, avatar: string): Promise<ActionState<ServerUser>> {
+  logDebug(`Request to update profile to: name=${displayName}, avatar=${avatar}`);
+  const user = await getAuthUser();
+  if (!user) {
+    logDebug('Update profile failed: Unauthorized.');
+    return { success: false, error: 'شما لاگین نکرده‌اید.' };
+  }
+
+  if (!displayName.trim()) {
+    return { success: false, error: 'نام نمایشی نمی‌تواند خالی باشد.' };
+  }
+  if (!avatar.trim()) {
+    return { success: false, error: 'انتخاب آواتار الزامی است.' };
+  }
+
+  const updated = updateUserProfile(user.username, displayName, avatar);
+  if (!updated) {
+    return { success: false, error: 'کاربر یافت نشد.' };
+  }
+
+  logDebug(`Profile successfully updated for ${user.username}`);
   return { success: true, data: updated };
 }
 

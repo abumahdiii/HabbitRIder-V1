@@ -23,6 +23,7 @@ export default function Sidebar({ username }: { username: string }) {
     { href: '/', label: 'داشبورد روتین‌ها', icon: '⚡' },
     { href: '/leaderboard', label: 'جدول قهرمانان', icon: '🏆' },
     { href: '/profile', label: 'تنظیمات کاربری', icon: '👤' },
+    ...(username.toLowerCase() === 'admin' ? [{ href: '/admin', label: 'پنل مدیریت ادمین', icon: '⚙️' }] : []),
   ];
 
   return (

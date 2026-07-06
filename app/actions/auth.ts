@@ -1,7 +1,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { findUserByUsername, createServerUser, updateUserDisplayName, updateUserProfile, getAllUsers, saveAllUsers, ServerUser, saveCopyrightReport, CopyrightReport } from '../services/serverDb';
+import { findUserByUsername, createServerUser, updateUserDisplayName, updateUserProfile, getAllUsers, saveAllUsers, ServerUser, saveCopyrightReport, CopyrightReport, getAllCopyrightReports, resolveCopyrightReport, getAllCryptoTransactions, manuallyUpgradeUser, CryptoTransaction } from '../services/serverDb';
 
 const SESSION_COOKIE_NAME = 'habbitrider_session';
 
@@ -208,6 +208,107 @@ export async function reportCopyrightAction(
   } catch (err) {
     logDebug('Error registering copyright report:', err);
     return { success: false, error: 'خطا در ثبت گزارش تخلف کپی‌رایت.' };
+  }
+}
+
+export async function getAdminStatsAction(): Promise<ActionState<{
+  totalUsers: number;
+  premiumUsers: number;
+  totalXp: number;
+  pendingReports: number;
+  totalTransactions: number;
+}>> {
+  const user = await getAuthUser();
+  if (!user || user.username.toLowerCase() !== 'admin') {
+    return { success: false, error: 'عدم دسترسی: شما سوپر ادمین نیستید.' };
+  }
+
+  try {
+    const users = getAllUsers();
+    const reports = getAllCopyrightReports();
+    const txs = getAllCryptoTransactions();
+
+    const premiumUsers = users.filter((u) => u.isPremium).length;
+    const totalXp = users.reduce((acc, u) => acc + u.xp, 0);
+    const pendingReports = reports.filter((r) => r.status === 'pending').length;
+
+    return {
+      success: true,
+      data: {
+        totalUsers: users.length,
+        premiumUsers,
+        totalXp,
+        pendingReports,
+        totalTransactions: txs.length
+      }
+    };
+  } catch (err) {
+    return { success: false, error: 'خطا در واکشی آمار سرور.' };
+  }
+}
+
+export async function getCopyrightReportsAction(): Promise<ActionState<CopyrightReport[]>> {
+  const user = await getAuthUser();
+  if (!user || user.username.toLowerCase() !== 'admin') {
+    return { success: false, error: 'عدم دسترسی' };
+  }
+
+  try {
+    const reports = getAllCopyrightReports();
+    return { success: true, data: reports };
+  } catch (err) {
+    return { success: false, error: 'خطا در واکشی گزارشات.' };
+  }
+}
+
+export async function resolveCopyrightReportAction(
+  reportId: string,
+  action: 'approve' | 'reject'
+): Promise<ActionState> {
+  const user = await getAuthUser();
+  if (!user || user.username.toLowerCase() !== 'admin') {
+    return { success: false, error: 'عدم دسترسی' };
+  }
+
+  try {
+    const success = resolveCopyrightReport(reportId, action);
+    if (success) {
+      return { success: true };
+    }
+    return { success: false, error: 'گزارش یافت نشد.' };
+  } catch (err) {
+    return { success: false, error: 'خطا در پردازش گزارش.' };
+  }
+}
+
+export async function getCryptoTransactionsAction(): Promise<ActionState<CryptoTransaction[]>> {
+  const user = await getAuthUser();
+  if (!user || user.username.toLowerCase() !== 'admin') {
+    return { success: false, error: 'عدم دسترسی' };
+  }
+
+  try {
+    const txs = getAllCryptoTransactions();
+    return { success: true, data: txs };
+  } catch (err) {
+    return { success: false, error: 'خطا در واکشی تراکنش‌ها.' };
+  }
+}
+
+export async function manuallyUpgradeUserAction(targetUsername: string): Promise<ActionState<ServerUser>> {
+  const user = await getAuthUser();
+  if (!user || user.username.toLowerCase() !== 'admin') {
+    return { success: false, error: 'عدم دسترسی' };
+  }
+
+  try {
+    const updated = manuallyUpgradeUser(targetUsername);
+    if (updated) {
+      return { success: true, data: updated };
+    }
+    return { success: false, error: 'کاربر یافت نشد.' };
+  } catch (err) {
+    return { success: false, error: 'خطا در ارتقای کاربر.' };
   }
 }
 

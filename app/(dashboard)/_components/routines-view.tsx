@@ -30,7 +30,6 @@ const isRoutineScheduledForDate = (routine: Routine, date: Date): boolean => {
 
   if (schedule.type === 'weekly' || schedule.type === 'custom') {
     if (!schedule.days || schedule.days.length === 0) return false;
-    // JS getDay() returns 0 for Sunday, 1 for Monday, etc.
     const day = date.getDay();
     return schedule.days.includes(day);
   }
@@ -50,6 +49,9 @@ export default function RoutinesView() {
   const [filter, setFilter] = useState<'all' | 'remaining' | 'done'>('all');
   const [viewMode, setViewMode] = useState<'today' | 'all'>('today');
   const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
+  
+  // Layout redesign states
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [reportingResource, setReportingResource] = useState<{ routine: Routine; resource: RoutineResource } | null>(null);
   const [reportReason, setReportReason] = useState('');
   const [isReporting, setIsReporting] = useState(false);
@@ -65,8 +67,6 @@ export default function RoutinesView() {
       for (let i = 0; i < updatedList.length; i++) {
         const routine = updatedList[i];
         
-        // If the routine is completed, but the last completed date is not today,
-        // we reset the completed state for the new day.
         if (routine.completedToday && routine.lastCompletedDate !== todayString) {
           updatedList[i] = {
             ...routine,
@@ -76,12 +76,7 @@ export default function RoutinesView() {
           await saveRoutine(updatedList[i]);
           hasChanges = true;
         } 
-        // If a new day has started, and the routine was NOT completed,
-        // we reset the streak to 0 (unless it was already 0).
-        // To be safe, we check if there's a last completed date and it's not today.
         else if (!routine.completedToday && routine.lastCompletedDate && routine.lastCompletedDate !== todayString) {
-          // Check if it was scheduled between the lastCompletedDate and today to break streak
-          // For simplicity and standard habit tracking, we reset streak if they missed it on a new day.
           if (routine.streak > 0) {
             updatedList[i] = {
               ...routine,
@@ -128,6 +123,7 @@ export default function RoutinesView() {
     try {
       await saveRoutine(newRoutine);
       toast.success(`روتین "${newRoutine.title}" با موفقیت ذخیره شد! ✅`);
+      setIsFormOpen(false);
       await loadRoutines();
     } catch (err) {
       toast.error('خطا در ثبت روتین جدید. ❌');
@@ -147,13 +143,10 @@ export default function RoutinesView() {
         const xpChange = nextCompleted ? 15 : -15;
         const streakChange = nextCompleted ? 1 : -1;
 
-        // Sync XP/Streak on Server
         const res = await addXpAction(xpChange, streakChange);
         if (res.success && res.data) {
-          // Sync context stats
           syncUser(res.data);
 
-          // Sync local IndexedDB profile
           const localProf = await getProfile();
           if (localProf) {
             const updatedLocalProf: UserProfile = {
@@ -171,6 +164,7 @@ export default function RoutinesView() {
       }
 
       setEditingRoutine(null);
+      setIsFormOpen(false);
       await loadRoutines();
     } catch (err) {
       toast.error('خطا در بروزرسانی روتین. ❌');
@@ -297,164 +291,182 @@ export default function RoutinesView() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-4xl mx-auto">
         <div className="h-6 w-48 bg-zinc-200 dark:bg-slate-800 animate-pulse rounded-lg" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="h-64 bg-zinc-200 dark:bg-slate-800 animate-pulse rounded-2xl" />
-          <div className="lg:col-span-2 space-y-4">
-            <div className="h-20 bg-zinc-200 dark:bg-slate-800 animate-pulse rounded-2xl" />
-            <div className="h-20 bg-zinc-200 dark:bg-slate-800 animate-pulse rounded-2xl" />
-            <div className="h-20 bg-zinc-200 dark:bg-slate-800 animate-pulse rounded-2xl" />
-          </div>
+        <div className="space-y-4">
+          <div className="h-20 bg-zinc-200 dark:bg-slate-800 animate-pulse rounded-2xl" />
+          <div className="h-20 bg-zinc-200 dark:bg-slate-800 animate-pulse rounded-2xl" />
+          <div className="h-20 bg-zinc-200 dark:bg-slate-800 animate-pulse rounded-2xl" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-pop">
+    <div className="space-y-6 animate-pop max-w-4xl mx-auto">
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Creation & Edit Form Column */}
-        <div className="lg:col-span-1">
-          <AddRoutineForm
-            onCreate={handleCreateRoutine}
-            editingRoutine={editingRoutine}
-            onUpdate={handleUpdateRoutine}
-            onCancelEdit={() => setEditingRoutine(null)}
-          />
+      {/* Top Welcome & Quick Action Bar */}
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-white/50 dark:bg-slate-900/35 p-5 rounded-3xl border border-card-border/60 gap-4">
+        <div>
+          <span className="text-[10px] font-black text-primary uppercase font-num tracking-wider">HabbitRider Platform</span>
+          <h2 className="text-lg font-black text-text-main dark:text-slate-100 mt-0.5">داشبورد عادت‌ها و روتین‌های روزانه</h2>
+          <p className="text-xs text-text-muted font-bold mt-1">برنامه‌ریزی، پیگیری و رقابت هوشمند برای رشد فردی.</p>
         </div>
+        <button
+          onClick={() => {
+            setEditingRoutine(null);
+            setIsFormOpen(true);
+          }}
+          className="btn-3d btn-3d-primary text-xs font-black self-start sm:self-center flex items-center gap-1.5"
+        >
+          <span>➕</span>
+          <span>تعریف روتین جدید</span>
+        </button>
+      </div>
 
-        {/* Routines List & Filters Column */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Progress Card (Gamified representation for today) */}
-          {todayCount > 0 && (
-            <div className="card-playful p-5">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-sm font-black text-text-main dark:text-slate-200">
-                  🎯 پیشرفت روتین‌های امروز
-                </span>
-                <span className="text-xs font-bold text-text-muted">
-                  <span className="font-num font-black text-sm text-primary">{todayCompletedCount}</span> از <span className="font-num font-black text-sm">{todayCount}</span> عادت (<span className="font-num font-black text-sm text-primary">{completionPercentage}%</span>)
-                </span>
-              </div>
-              <div className="w-full bg-zinc-100 dark:bg-slate-800/60 h-2.5 rounded-full overflow-hidden border border-zinc-200/30 dark:border-slate-800/40 relative">
-                <div
-                  className="bg-gradient-to-r from-primary to-primary-down h-full rounded-full transition-all duration-500 relative"
-                  style={{ width: `${completionPercentage}%` }}
-                >
-                  <div className="absolute inset-0 shimmer-bg shimmer-anim" />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Main List Box */}
-          <div className="card-playful">
-            
-            <div className="flex flex-col xl:flex-row xl:justify-between xl:items-center gap-4 mb-6">
-              <div>
-                <h2 className="text-lg font-black text-text-main dark:text-slate-100 flex items-center gap-2">
-                  <span>📋</span>
-                  {viewMode === 'today' ? 'روتین‌های امروز شما' : 'همه روتین‌های تعریف شده'}
-                </h2>
-                <p className="text-xs text-text-muted font-bold mt-1">تیک کارهای انجام شده را بزنید تا امتیاز بگیرید.</p>
-              </div>
-
-              <div className="flex flex-wrap gap-3 items-center">
-                {/* View Mode Switcher (Today vs All) */}
-                <div className="flex bg-zinc-200/40 dark:bg-slate-800/30 p-1 rounded-2xl border border-card-border/50">
-                  <button
-                    onClick={() => setViewMode('today')}
-                    className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-300 cursor-pointer ${
-                      viewMode === 'today'
-                        ? 'bg-white dark:bg-slate-800 text-primary shadow-sm'
-                        : 'text-text-muted hover:text-text-main dark:hover:text-white'
-                    }`}
-                  >
-                    امروز
-                  </button>
-                  <button
-                    onClick={() => setViewMode('all')}
-                    className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-300 cursor-pointer ${
-                      viewMode === 'all'
-                        ? 'bg-white dark:bg-slate-800 text-primary shadow-sm'
-                        : 'text-text-muted hover:text-text-main dark:hover:text-white'
-                    }`}
-                  >
-                    همه عادت‌ها
-                  </button>
-                </div>
-
-                {/* Filter Tabs Group */}
-                <div className="flex bg-zinc-200/40 dark:bg-slate-800/30 p-1 rounded-2xl border border-card-border/50">
-                  <button
-                    onClick={() => setFilter('all')}
-                    className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-300 cursor-pointer ${
-                      filter === 'all'
-                        ? 'bg-white dark:bg-slate-800 text-primary shadow-sm'
-                        : 'text-text-muted hover:text-text-main dark:hover:text-white'
-                    }`}
-                  >
-                    کل (<span className="font-num">{totalCount}</span>)
-                  </button>
-                  <button
-                    onClick={() => setFilter('remaining')}
-                    className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-300 cursor-pointer ${
-                      filter === 'remaining'
-                        ? 'bg-white dark:bg-slate-800 text-primary shadow-sm'
-                        : 'text-text-muted hover:text-text-main dark:hover:text-white'
-                    }`}
-                  >
-                    مانده (<span className="font-num">{remainingCount}</span>)
-                  </button>
-                  <button
-                    onClick={() => setFilter('done')}
-                    className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-300 cursor-pointer ${
-                      filter === 'done'
-                        ? 'bg-white dark:bg-slate-800 text-primary shadow-sm'
-                        : 'text-text-muted hover:text-text-main dark:hover:text-white'
-                    }`}
-                  >
-                    انجام شده (<span className="font-num">{completedCount}</span>)
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Scroll container */}
-            <div className="max-h-[380px] overflow-y-auto pr-2 space-y-3.5 scrollbar-thin">
-              {filteredRoutines.length === 0 ? (
-                <div className="text-center py-14 text-text-muted font-bold bg-zinc-50/20 dark:bg-slate-800/10 border border-dashed border-card-border rounded-3xl animate-pop">
-                  <div className="text-5xl mb-3 select-none animate-float">🏄‍♂️🐰</div>
-                  {filter === 'remaining'
-                    ? 'تبریک! روتین مانده‌ای برای انجام وجود ندارد. 🏆'
-                    : filter === 'done'
-                    ? 'هنوز هیچ روتینی را تکمیل نکرده‌اید! دست به کار شوید. ⚡'
-                    : viewMode === 'today'
-                    ? 'امروز هیچ روتینی در برنامه شما نیست! می‌توانید به تب «همه عادت‌ها» مراجعه کنید.'
-                    : 'روتینی یافت نشد! یک روتین جدید بسازید تا ماجراجویی آغاز شود.'}
-                </div>
-              ) : (
-                filteredRoutines.map((routine) => (
-                  <RoutineItem
-                    key={routine.id}
-                    routine={routine}
-                    onToggle={handleToggleRoutineCompletion}
-                    onDelete={handleDeleteRoutine}
-                    onEdit={setEditingRoutine}
-                    onUpdate={handleUpdateRoutine}
-                    onReportCopyright={(rot, res) => setReportingResource({ routine: rot, resource: res })}
-                  />
-                ))
-              )}
+      {/* Progress Card (Gamified representation for today) */}
+      {todayCount > 0 && (
+        <div className="card-playful p-5">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-sm font-black text-text-main dark:text-slate-200">
+              🎯 پیشرفت روتین‌های امروز شما
+            </span>
+            <span className="text-xs font-bold text-text-muted">
+              <span className="font-num font-black text-sm text-primary">{todayCompletedCount}</span> از <span className="font-num font-black text-sm">{todayCount}</span> عادت (<span className="font-num font-black text-sm text-primary">{completionPercentage}%</span>)
+            </span>
+          </div>
+          <div className="w-full bg-zinc-100 dark:bg-slate-800/60 h-2.5 rounded-full overflow-hidden border border-zinc-200/30 dark:border-slate-800/40 relative">
+            <div
+              className="bg-gradient-to-r from-primary to-primary-down h-full rounded-full transition-all duration-500 relative"
+              style={{ width: `${completionPercentage}%` }}
+            >
+              <div className="absolute inset-0 shimmer-bg shimmer-anim" />
             </div>
           </div>
-          
+        </div>
+      )}
+
+      {/* Main List Box */}
+      <div className="card-playful">
+        
+        <div className="flex flex-col xl:flex-row xl:justify-between xl:items-center gap-4 mb-6">
+          <div>
+            <h2 className="text-base font-black text-text-main dark:text-slate-100 flex items-center gap-2">
+              <span>📋</span>
+              {viewMode === 'today' ? 'روتین‌های امروز شما' : 'همه روتین‌های تعریف شده'}
+            </h2>
+            <p className="text-xs text-text-muted font-bold mt-1">تیک کارهای انجام شده را بزنید تا امتیاز بگیرید.</p>
+          </div>
+
+          <div className="flex flex-wrap gap-3 items-center">
+            {/* View Mode Switcher (Today vs All) */}
+            <div className="flex bg-zinc-200/40 dark:bg-slate-800/30 p-1 rounded-2xl border border-card-border/50">
+              <button
+                onClick={() => setViewMode('today')}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-300 cursor-pointer ${
+                  viewMode === 'today'
+                    ? 'bg-white dark:bg-slate-800 text-primary shadow-sm'
+                    : 'text-text-muted hover:text-text-main dark:hover:text-white'
+                }`}
+              >
+                امروز
+              </button>
+              <button
+                onClick={() => setViewMode('all')}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-300 cursor-pointer ${
+                  viewMode === 'all'
+                    ? 'bg-white dark:bg-slate-800 text-primary shadow-sm'
+                    : 'text-text-muted hover:text-text-main dark:hover:text-white'
+                }`}
+              >
+                همه عادت‌ها
+              </button>
+            </div>
+
+            {/* Filter Tabs Group */}
+            <div className="flex bg-zinc-200/40 dark:bg-slate-800/30 p-1 rounded-2xl border border-card-border/50">
+              <button
+                onClick={() => setFilter('all')}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-300 cursor-pointer ${
+                  filter === 'all'
+                    ? 'bg-white dark:bg-slate-800 text-primary shadow-sm'
+                    : 'text-text-muted hover:text-text-main dark:hover:text-white'
+                }`}
+              >
+                کل (<span className="font-num">{totalCount}</span>)
+              </button>
+              <button
+                onClick={() => setFilter('remaining')}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-300 cursor-pointer ${
+                  filter === 'remaining'
+                    ? 'bg-white dark:bg-slate-800 text-primary shadow-sm'
+                    : 'text-text-muted hover:text-text-main dark:hover:text-white'
+                }`}
+              >
+                مانده (<span className="font-num">{remainingCount}</span>)
+              </button>
+              <button
+                onClick={() => setFilter('done')}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all duration-300 cursor-pointer ${
+                  filter === 'done'
+                    ? 'bg-white dark:bg-slate-800 text-primary shadow-sm'
+                    : 'text-text-muted hover:text-text-main dark:hover:text-white'
+                }`}
+              >
+                انجام شده (<span className="font-num">{completedCount}</span>)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll container */}
+        <div className="max-h-[480px] overflow-y-auto pr-2 space-y-3.5 scrollbar-thin">
+          {filteredRoutines.length === 0 ? (
+            <div className="text-center py-14 text-text-muted font-bold bg-zinc-50/20 dark:bg-slate-800/10 border border-dashed border-card-border rounded-3xl animate-pop">
+              <div className="text-5xl mb-3 select-none animate-float">🏄‍♂️🐰</div>
+              {filter === 'remaining'
+                ? 'تبریک! روتین مانده‌ای برای انجام وجود ندارد. 🏆'
+                : filter === 'done'
+                ? 'هنوز هیچ روتینی را تکمیل نکرده‌اید! دست به کار شوید. ⚡'
+                : viewMode === 'today'
+                ? 'امروز هیچ روتینی در برنامه شما نیست! می‌توانید به تب «همه عادت‌ها» مراجعه کنید.'
+                : 'روتینی یافت نشد! یک روتین جدید بسازید تا ماجراجویی آغاز شود.'}
+            </div>
+          ) : (
+            filteredRoutines.map((routine) => (
+              <RoutineItem
+                key={routine.id}
+                routine={routine}
+                onToggle={handleToggleRoutineCompletion}
+                onDelete={handleDeleteRoutine}
+                onEdit={(rot) => {
+                  setEditingRoutine(rot);
+                  setIsFormOpen(true);
+                }}
+                onUpdate={handleUpdateRoutine}
+                onReportCopyright={(rot, res) => setReportingResource({ routine: rot, resource: res })}
+              />
+            ))
+          )}
         </div>
       </div>
+
+      {/* Routine Creation/Edit Modal */}
+      {(isFormOpen || editingRoutine) && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-pop">
+          <div className="max-w-md w-full relative max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl scrollbar-thin">
+            <AddRoutineForm
+              onCreate={handleCreateRoutine}
+              editingRoutine={editingRoutine}
+              onUpdate={handleUpdateRoutine}
+              onCancelEdit={() => {
+                setEditingRoutine(null);
+                setIsFormOpen(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Copyright violation report modal */}
       {reportingResource && (

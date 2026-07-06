@@ -42,12 +42,12 @@ export default function LeaderboardView({ initialLeaderboard, currentUsername }:
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 animate-pop">
       
       {/* 3D Podium Card */}
       {topThree.length > 0 && (
-        <div className="card-playful bg-white dark:bg-slate-900 border-card-border p-6 text-center animate-pop">
-          <h2 className="text-lg font-black text-text-main dark:text-slate-100 flex items-center justify-center gap-2 mb-2">
+        <div className="card-playful text-center">
+          <h2 className="text-md font-black text-text-main dark:text-slate-100 flex items-center justify-center gap-2 mb-2">
             <span>🏆</span> سکوی قهرمانان هبیت رایدر
           </h2>
           <p className="text-xs text-text-muted font-bold mb-6">برترین مبارزان عادت‌ها بر اساس امتیاز کل XP</p>
@@ -61,10 +61,10 @@ export default function LeaderboardView({ initialLeaderboard, currentUsername }:
                 <div className="font-extrabold text-xs text-text-main dark:text-slate-200 truncate w-full px-1 mb-1">
                   {topThree[1].displayName}
                 </div>
-                <div className="text-[10px] text-text-muted font-black mb-2">⚡ {topThree[1].xp} XP</div>
-                <div className="w-full h-24 bg-gradient-to-t from-slate-200/80 to-slate-100/50 dark:from-slate-800/80 dark:to-slate-700/50 border-2 border-slate-300 dark:border-slate-600 rounded-t-2xl flex flex-col justify-between p-3.5 shadow-sm">
+                <div className="text-[10px] text-text-muted font-black font-num mb-2">⚡ {topThree[1].xp} XP</div>
+                <div className="w-full h-24 bg-gradient-to-t from-slate-400/20 to-slate-400/5 dark:from-slate-800/10 dark:to-slate-700/5 border border-slate-400/30 rounded-t-3xl flex flex-col justify-between p-3.5 shadow-sm">
                   <span className="text-2xl select-none">🥈</span>
-                  <span className="text-[10px] font-black text-slate-500 dark:text-slate-400">رتبه دوم</span>
+                  <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 font-num">RANK 2</span>
                 </div>
               </div>
             )}
@@ -79,10 +79,10 @@ export default function LeaderboardView({ initialLeaderboard, currentUsername }:
                 <div className="font-extrabold text-sm text-text-main dark:text-slate-100 truncate w-full px-1 mb-1">
                   {topThree[0].displayName}
                 </div>
-                <div className="text-xs text-amber-600 dark:text-amber-400 font-black mb-2">⚡ {topThree[0].xp} XP</div>
-                <div className="w-full h-32 bg-gradient-to-t from-amber-200/90 to-amber-100/60 dark:from-amber-950/80 dark:to-amber-900/60 border-2 border-amber-400 dark:border-amber-700 rounded-t-2xl flex flex-col justify-between p-4 shadow-md">
+                <div className="text-xs text-amber-600 dark:text-amber-400 font-black font-num mb-2">⚡ {topThree[0].xp} XP</div>
+                <div className="w-full h-32 bg-gradient-to-t from-amber-500/20 to-amber-500/5 border border-amber-400/50 shadow-[0_0_25px_rgba(245,158,11,0.15)] rounded-t-3xl flex flex-col justify-between p-4 shadow-md">
                   <span className="text-3xl select-none">🥇</span>
-                  <span className="text-xs font-black text-amber-700 dark:text-amber-300">قهرمان میدان</span>
+                  <span className="text-xs font-black text-amber-600 dark:text-amber-400 font-num">CHAMPION</span>
                 </div>
               </div>
             )}
@@ -94,10 +94,10 @@ export default function LeaderboardView({ initialLeaderboard, currentUsername }:
                 <div className="font-extrabold text-xs text-text-main dark:text-slate-200 truncate w-full px-1 mb-1">
                   {topThree[2].displayName}
                 </div>
-                <div className="text-[10px] text-text-muted font-black mb-2">⚡ {topThree[2].xp} XP</div>
-                <div className="w-full h-20 bg-gradient-to-t from-amber-700/20 to-amber-600/10 dark:from-amber-900/30 dark:to-amber-800/10 border-2 border-amber-600/30 dark:border-amber-800/40 rounded-t-2xl flex flex-col justify-between p-3 shadow-xs">
+                <div className="text-[10px] text-text-muted font-black font-num mb-2">⚡ {topThree[2].xp} XP</div>
+                <div className="w-full h-20 bg-gradient-to-t from-orange-500/15 to-orange-500/5 border border-orange-500/20 rounded-t-3xl flex flex-col justify-between p-3 shadow-xs">
                   <span className="text-xl select-none">🥉</span>
-                  <span className="text-[10px] font-black text-amber-800/80 dark:text-amber-500">رتبه سوم</span>
+                  <span className="text-[10px] font-black text-orange-500 dark:text-orange-400 font-num">RANK 3</span>
                 </div>
               </div>
             )}
@@ -107,12 +107,12 @@ export default function LeaderboardView({ initialLeaderboard, currentUsername }:
       )}
 
       {/* Main Leaderboard List */}
-      <div className="card-playful bg-white dark:bg-slate-900 border-card-border p-6 animate-pop">
-        <h3 className="text-base font-black text-text-main dark:text-slate-100 mb-4">
+      <div className="card-playful">
+        <h3 className="text-sm font-black text-text-main dark:text-slate-100 mb-4">
           جدول رده‌بندی کامل اعضا
         </h3>
         
-        <div className="space-y-3.5">
+        <div className="space-y-3">
           {sortedLeaderboard.map((user, index) => {
             const isMe = user.username === currentUsername;
             const rank = index + 1;
@@ -121,20 +121,20 @@ export default function LeaderboardView({ initialLeaderboard, currentUsername }:
             return (
               <div
                 key={user.username}
-                className={`flex justify-between items-center p-3.5 rounded-2xl border-2 transition-all duration-150 ${
+                className={`flex justify-between items-center p-3.5 rounded-2xl border transition-all duration-300 ${
                   isMe
-                    ? 'border-primary bg-primary/5 dark:bg-primary/10 font-bold scale-[1.01] shadow-xs'
-                    : 'border-card-border bg-background'
+                    ? 'border-primary/50 bg-primary/5 dark:bg-primary/10 font-bold scale-[1.01] shadow-[0_2px_12px_rgba(16,185,129,0.08)]'
+                    : 'border-card-border bg-white/40 dark:bg-slate-900/25 hover:border-zinc-300 dark:hover:border-slate-800'
                 }`}
               >
                 <div className="flex items-center gap-4">
                   {/* Rank Indicator */}
-                  <div className="text-base w-7 text-center font-black text-text-muted dark:text-slate-400">
+                  <div className="text-base w-7 text-center font-black text-text-muted dark:text-slate-400 font-num">
                     {rankBadge}
                   </div>
                   
                   {/* Avatar */}
-                  <div className="text-3xl select-none bg-zinc-50 dark:bg-slate-800 p-1 rounded-xl border border-zinc-200/55 dark:border-slate-700">
+                  <div className="text-3xl select-none bg-zinc-50 dark:bg-slate-800/40 p-1 rounded-xl border border-zinc-200/50 dark:border-slate-800">
                     {user.avatar}
                   </div>
                   
@@ -150,14 +150,14 @@ export default function LeaderboardView({ initialLeaderboard, currentUsername }:
                     </div>
                     
                     <div className="text-[10px] text-text-muted font-bold mt-1">
-                      سطح {user.level} • استریک 🔥 {user.streak} روز
+                      سطح <span className="font-num">{user.level}</span> • استریک 🔥 <span className="font-num">{user.streak}</span> روز
                     </div>
                   </div>
                 </div>
 
                 {/* Score */}
                 <div className="text-left font-black">
-                  <span className="text-sm text-primary-down dark:text-primary">⚡ {user.xp}</span>
+                  <span className="text-sm text-primary font-num">⚡ {user.xp}</span>
                   <span className="text-[9px] text-text-muted block font-bold">XP</span>
                 </div>
               </div>

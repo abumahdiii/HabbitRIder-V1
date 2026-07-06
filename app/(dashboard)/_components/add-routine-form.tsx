@@ -7,10 +7,10 @@ interface AddRoutineFormProps {
 }
 
 const CATEGORIES = [
-  { value: 'مطالعه', label: 'مطالعه', icon: '📚', colorClass: 'hover:border-amber-400 focus:border-amber-500', activeClass: 'border-amber-500 bg-amber-50 dark:bg-amber-950/25 text-amber-600 dark:text-amber-400' },
-  { value: 'ورزش', label: 'ورزش', icon: '💪', colorClass: 'hover:border-emerald-400 focus:border-emerald-500', activeClass: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/25 text-emerald-600 dark:text-emerald-400' },
-  { value: 'کدنویسی', label: 'کدنویسی', icon: '💻', colorClass: 'hover:border-purple-400 focus:border-purple-500', activeClass: 'border-purple-500 bg-purple-50 dark:bg-purple-950/25 text-purple-600 dark:text-purple-400' },
-  { value: 'زبان', label: 'زبان', icon: '🗣️', colorClass: 'hover:border-sky-400 focus:border-sky-500', activeClass: 'border-sky-500 bg-sky-50 dark:bg-sky-950/25 text-sky-600 dark:text-sky-400' },
+  { value: 'مطالعه', label: 'مطالعه', icon: '📚', colorClass: 'hover:border-amber-400/80 focus:border-amber-500', activeClass: 'border-amber-500 bg-amber-500/5 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-[0_2px_10px_rgba(245,158,11,0.05)]' },
+  { value: 'ورزش', label: 'ورزش', icon: '💪', colorClass: 'hover:border-emerald-400/80 focus:border-emerald-500', activeClass: 'border-emerald-500 bg-emerald-500/5 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-[0_2px_10px_rgba(16,185,129,0.05)]' },
+  { value: 'کدنویسی', label: 'کدنویسی', icon: '💻', colorClass: 'hover:border-purple-400/80 focus:border-purple-500', activeClass: 'border-purple-500 bg-purple-500/5 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 shadow-[0_2px_10px_rgba(168,85,247,0.05)]' },
+  { value: 'زبان', label: 'زبان', icon: '🗣️', colorClass: 'hover:border-sky-400/80 focus:border-sky-500', activeClass: 'border-sky-500 bg-sky-500/5 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 shadow-[0_2px_10px_rgba(14,165,233,0.05)]' },
 ];
 
 export default function AddRoutineForm({ onCreate }: AddRoutineFormProps) {
@@ -32,8 +32,8 @@ export default function AddRoutineForm({ onCreate }: AddRoutineFormProps) {
   };
 
   return (
-    <div className="card-playful bg-white dark:bg-slate-900 border-card-border">
-      <h2 className="text-lg font-black mb-5 text-text-main dark:text-slate-100 flex items-center gap-2">
+    <div className="card-playful">
+      <h2 className="text-md font-black mb-5 text-text-main dark:text-slate-100 flex items-center gap-2">
         <span>➕</span> تعریف عادت یا روتین جدید
       </h2>
       
@@ -50,7 +50,7 @@ export default function AddRoutineForm({ onCreate }: AddRoutineFormProps) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="مثال: ۳۰ دقیقه مطالعه فیزیک"
-            className="w-full px-4 py-3.5 rounded-2xl border-2 border-card-border bg-background text-text-main focus:border-primary focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all font-bold text-sm"
+            className="w-full px-4 py-3 rounded-2xl border border-card-border bg-zinc-500/5 text-text-main placeholder-text-muted/50 focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all font-bold text-sm"
             required
             disabled={isSubmitting}
           />
@@ -71,10 +71,10 @@ export default function AddRoutineForm({ onCreate }: AddRoutineFormProps) {
                   type="button"
                   onClick={() => setCategory(cat.value)}
                   disabled={isSubmitting}
-                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all duration-150 ${
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-300 ${
                     isSelected
-                      ? cat.activeClass + ' scale-[1.03] shadow-sm font-black'
-                      : 'border-card-border bg-zinc-50 dark:bg-slate-800 text-text-muted hover:text-text-main dark:hover:text-white ' + cat.colorClass
+                      ? cat.activeClass + ' scale-[1.03] border-current font-black'
+                      : 'border-card-border bg-zinc-50/50 dark:bg-slate-800/30 text-text-muted hover:text-text-main dark:hover:text-white ' + cat.colorClass
                   }`}
                 >
                   <span className="text-3xl mb-1.5 select-none">{cat.icon}</span>

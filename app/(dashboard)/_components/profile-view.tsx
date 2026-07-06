@@ -79,9 +79,9 @@ export default function ProfileView({ username }: { username: string }) {
   }, [state, updateDisplayName, updateAvatar]);
 
   return (
-    <div className="max-w-xl mx-auto card-playful bg-white dark:bg-slate-900 border-card-border p-6 md:p-8 animate-pop">
+    <div className="max-w-xl mx-auto card-playful animate-pop">
       
-      <h2 className="text-xl font-black mb-6 text-text-main dark:text-slate-100 flex items-center gap-2">
+      <h2 className="text-md font-black mb-6 text-text-main dark:text-slate-100 flex items-center gap-2">
         <span>👤</span> تنظیمات حساب کاربری
       </h2>
 
@@ -92,7 +92,7 @@ export default function ProfileView({ username }: { username: string }) {
           <label className="block text-xs font-black text-text-muted dark:text-slate-300">
             آواتار یا مسکات خود را انتخاب کنید:
           </label>
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+          <div className="grid grid-cols-5 sm:grid-cols-8 gap-2.5">
             {UNIQUE_AVATARS.map((emoji) => {
               const isSelected = selectedAvatar === emoji;
               return (
@@ -100,10 +100,10 @@ export default function ProfileView({ username }: { username: string }) {
                   key={emoji}
                   type="button"
                   onClick={() => setSelectedAvatar(emoji)}
-                  className={`w-12 h-12 text-2xl flex items-center justify-center rounded-2xl border-2 transition-all ${
+                  className={`w-11 h-11 text-xl flex items-center justify-center rounded-2xl border transition-all duration-300 ${
                     isSelected
                       ? 'border-primary bg-primary/10 scale-110 shadow-sm'
-                      : 'border-card-border bg-zinc-50 dark:bg-slate-800 hover:border-zinc-400 dark:hover:border-slate-600'
+                      : 'border-card-border bg-zinc-50/50 dark:bg-slate-800/30 hover:border-zinc-400 dark:hover:border-slate-600'
                   }`}
                 >
                   {emoji}
@@ -124,31 +124,31 @@ export default function ProfileView({ username }: { username: string }) {
             type="text"
             defaultValue={displayName}
             placeholder="مثال: خرگوش زرنگ"
-            className="w-full p-3.5 rounded-2xl border-2 border-card-border bg-background text-text-main focus:border-primary focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all font-bold text-sm"
+            className="w-full px-4 py-3 rounded-2xl border border-card-border bg-zinc-500/5 text-text-main focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all font-bold text-sm"
             required
           />
         </div>
 
         {/* Quick Stats Summary Card */}
-        <div className="p-4 bg-zinc-50 dark:bg-slate-800/40 border-2 border-card-border rounded-2xl space-y-3.5 text-sm">
-          <span className="block text-[10px] font-black text-text-muted tracking-wider uppercase">
+        <div className="p-4 bg-zinc-500/5 dark:bg-slate-800/10 border border-card-border/60 rounded-2xl space-y-3 text-sm">
+          <span className="block text-[9px] font-black text-text-muted/80 tracking-widest uppercase">
             شناسه و اطلاعات آمار عمومی
           </span>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
             
-            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-zinc-200/60 dark:border-slate-700">
-              <span className="block text-xs text-text-muted font-bold mb-1">نام کاربری</span>
-              <span className="font-extrabold text-text-main dark:text-slate-200">@{username}</span>
+            <div className="p-3 bg-white/40 dark:bg-slate-800/30 rounded-xl border border-card-border/50">
+              <span className="block text-[10px] text-text-muted font-bold mb-1">نام کاربری</span>
+              <span className="font-extrabold text-xs text-text-main dark:text-slate-200">@{username}</span>
             </div>
 
-            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-zinc-200/60 dark:border-slate-700">
-              <span className="block text-xs text-text-muted font-bold mb-1">سطح فعلی</span>
-              <span className="font-extrabold text-secondary-down">سطح {level}</span>
+            <div className="p-3 bg-white/40 dark:bg-slate-800/30 rounded-xl border border-card-border/50">
+              <span className="block text-[10px] text-text-muted font-bold mb-1">سطح فعلی</span>
+              <span className="font-extrabold text-xs text-secondary-down dark:text-indigo-400">سطح <span className="font-num font-black">{level}</span></span>
             </div>
 
-            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-zinc-200/60 dark:border-slate-700">
-              <span className="block text-xs text-text-muted font-bold mb-1">امتیاز تجربه</span>
-              <span className="font-extrabold text-primary-down">⚡ {xp} XP</span>
+            <div className="p-3 bg-white/40 dark:bg-slate-800/30 rounded-xl border border-card-border/50">
+              <span className="block text-[10px] text-text-muted font-bold mb-1">امتیاز تجربه</span>
+              <span className="font-extrabold text-xs text-primary font-num">⚡ {xp} XP</span>
             </div>
 
           </div>

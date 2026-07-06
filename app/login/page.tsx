@@ -89,16 +89,16 @@ export default function LoginPage() {
       <div className="text-center mb-8 animate-pop">
         <div className="relative inline-block mb-3">
           {/* Animated Mascot */}
-          <div className="text-7xl select-none animate-float filter drop-shadow-md">
+          <div className="text-6xl select-none animate-float filter drop-shadow-sm bg-gradient-to-tr from-primary/15 to-secondary/15 p-5 rounded-full border border-card-border">
             {isLogin ? '🐰' : '🦊'}
           </div>
           <span className="absolute -top-1 -right-2 text-2xl animate-bounce">⚡</span>
         </div>
         
-        <h1 className="text-4xl font-black text-primary tracking-tight mb-2 drop-shadow-sm">
-          هبیت رایدر <span className="text-text-main dark:text-white">| HabbitRider</span>
+        <h1 className="text-3xl font-black tracking-tight mb-2 drop-shadow-xs text-text-main dark:text-white">
+          <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">هبیت رایدر</span> <span className="font-num text-lg font-black opacity-90">| HabbitRider</span>
         </h1>
-        <p className="text-text-muted text-sm font-bold max-w-xs mx-auto">
+        <p className="text-text-muted text-xs font-bold max-w-xs mx-auto leading-relaxed">
           {isLogin 
             ? 'خوش آمدید! برای ادامه رقابت روزانه وارد حساب کاربری خود شوید.' 
             : 'عادت‌های خود را به بازی تبدیل کنید و با دوستانتان مسابقه دهید!'}
@@ -106,17 +106,17 @@ export default function LoginPage() {
       </div>
 
       {/* Main Container */}
-      <div className="w-full max-w-md card-playful bg-white dark:bg-slate-900 border-card-border p-6 md:p-8 animate-pop">
+      <div className="w-full max-w-md card-playful p-6 md:p-8 animate-pop">
         
         {/* Playful Tabs */}
-        <div className="flex bg-zinc-100 dark:bg-slate-800 p-1.5 rounded-2xl mb-8 border border-zinc-200 dark:border-slate-700">
+        <div className="flex bg-zinc-200/40 dark:bg-slate-800/30 p-1.5 rounded-2xl mb-8 border border-card-border/50">
           <button
             type="button"
             onClick={() => setIsLogin(true)}
-            className={`flex-1 py-3 text-center font-black text-sm rounded-xl transition-all duration-200 ${
+            className={`flex-1 py-2.5 text-center font-black text-xs rounded-xl transition-all duration-300 ${
               isLogin 
-                ? 'bg-white dark:bg-slate-700 text-primary shadow-sm scale-[1.02]' 
-                : 'text-text-muted hover:text-text-main hover:bg-zinc-200/50 dark:hover:bg-slate-700/30'
+                ? 'bg-white dark:bg-slate-800 text-primary shadow-xs scale-[1.01]' 
+                : 'text-text-muted hover:text-text-main hover:bg-zinc-200/30 dark:hover:bg-slate-800/20'
             }`}
           >
             ورود به حساب
@@ -124,10 +124,10 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => setIsLogin(false)}
-            className={`flex-1 py-3 text-center font-black text-sm rounded-xl transition-all duration-200 ${
+            className={`flex-1 py-2.5 text-center font-black text-xs rounded-xl transition-all duration-300 ${
               !isLogin 
-                ? 'bg-white dark:bg-slate-700 text-primary shadow-sm scale-[1.02]' 
-                : 'text-text-muted hover:text-text-main hover:bg-zinc-200/50 dark:hover:bg-slate-700/30'
+                ? 'bg-white dark:bg-slate-800 text-primary shadow-xs scale-[1.01]' 
+                : 'text-text-muted hover:text-text-main hover:bg-zinc-200/30 dark:hover:bg-slate-800/20'
             }`}
           >
             عضویت جدید
@@ -147,10 +147,10 @@ export default function LoginPage() {
                   name="displayName"
                   type="text"
                   placeholder="مثال: سوپر هیرو، دونده سرعت"
-                  className="w-full px-4 py-3.5 rounded-2xl border-2 border-card-border bg-background text-text-main focus:border-primary focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all font-bold text-sm"
+                  className="w-full px-4 py-3 rounded-2xl border border-card-border bg-zinc-500/5 text-text-main placeholder-text-muted/40 focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all font-bold text-sm"
                   required={!isLogin}
                 />
-                <span className="absolute left-4 top-3.5 text-lg select-none">👑</span>
+                <span className="absolute left-4 top-3 text-lg select-none">👑</span>
               </div>
             </div>
           )}
@@ -165,10 +165,10 @@ export default function LoginPage() {
                 name="username"
                 type="text"
                 placeholder="username"
-                className="w-full px-4 py-3.5 rounded-2xl border-2 border-card-border bg-background text-text-main focus:border-primary focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all font-bold text-sm"
+                className="w-full px-4 py-3 rounded-2xl border border-card-border bg-zinc-500/5 text-text-main placeholder-text-muted/40 focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all font-bold text-sm font-num"
                 required
               />
-              <span className="absolute left-4 top-3.5 text-lg select-none">👤</span>
+              <span className="absolute left-4 top-3 text-lg select-none">👤</span>
             </div>
           </div>
 
@@ -182,10 +182,10 @@ export default function LoginPage() {
                 name="password"
                 type="password"
                 placeholder="••••••••"
-                className="w-full px-4 py-3.5 rounded-2xl border-2 border-card-border bg-background text-text-main focus:border-primary focus:ring-4 focus:ring-primary/20 focus:outline-none transition-all font-bold text-sm"
+                className="w-full px-4 py-3 rounded-2xl border border-card-border bg-zinc-500/5 text-text-main placeholder-text-muted/40 focus:border-primary focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all font-bold text-sm font-num"
                 required
               />
-              <span className="absolute left-4 top-3.5 text-lg select-none">🔑</span>
+              <span className="absolute left-4 top-3 text-lg select-none">🔑</span>
             </div>
           </div>
 
@@ -194,7 +194,7 @@ export default function LoginPage() {
       </div>
 
       {/* Playful Footer */}
-      <footer className="mt-8 text-center text-xs text-text-muted font-bold max-w-sm">
+      <footer className="mt-8 text-center text-[10px] text-text-muted font-bold max-w-sm leading-relaxed">
         🛡️ تمامی اطلاعات به صورت رمزگذاری شده نگهداری می‌شوند. با عضویت در هبیت رایدر، به یکی از سوارکاران عادت‌ها تبدیل خواهید شد!
       </footer>
     </div>

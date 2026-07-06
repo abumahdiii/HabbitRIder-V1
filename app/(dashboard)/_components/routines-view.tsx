@@ -148,8 +148,7 @@ export default function RoutinesView() {
   }
 
   return (
-    <div className="space-y-6">
-
+    <div className="space-y-6 animate-pop">
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
@@ -163,18 +162,18 @@ export default function RoutinesView() {
           
           {/* Progress Card (Gamified representation) */}
           {totalCount > 0 && (
-            <div className="card-playful bg-white dark:bg-slate-900 border-card-border p-5">
-              <div className="flex justify-between items-center mb-2.5">
+            <div className="card-playful p-5">
+              <div className="flex justify-between items-center mb-3">
                 <span className="text-sm font-black text-text-main dark:text-slate-200">
                   🎯 پیشرفت امروز روتین‌ها
                 </span>
-                <span className="text-xs font-bold text-primary-down">
-                  {completedCount} از {totalCount} عادت ({completionPercentage}٪)
+                <span className="text-xs font-bold text-text-muted">
+                  <span className="font-num font-black text-sm text-primary">{completedCount}</span> از <span className="font-num font-black text-sm">{totalCount}</span> عادت (<span className="font-num font-black text-sm text-primary">{completionPercentage}%</span>)
                 </span>
               </div>
-              <div className="w-full bg-zinc-100 dark:bg-slate-800 h-3.5 rounded-full overflow-hidden border border-zinc-200/50 dark:border-slate-800 relative">
+              <div className="w-full bg-zinc-100 dark:bg-slate-800/60 h-2.5 rounded-full overflow-hidden border border-zinc-200/30 dark:border-slate-800/40 relative">
                 <div
-                  className="bg-primary h-full rounded-full transition-all duration-500 relative"
+                  className="bg-gradient-to-r from-primary to-primary-down h-full rounded-full transition-all duration-500 relative"
                   style={{ width: `${completionPercentage}%` }}
                 >
                   <div className="absolute inset-0 shimmer-bg shimmer-anim" />
@@ -184,45 +183,45 @@ export default function RoutinesView() {
           )}
 
           {/* Main List Box */}
-          <div className="card-playful bg-white dark:bg-slate-900 border-card-border">
+          <div className="card-playful">
             
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
               <div>
-                <h2 className="text-xl font-black text-text-main dark:text-slate-100">📋 روتین‌های روزانه</h2>
+                <h2 className="text-lg font-black text-text-main dark:text-slate-100">📋 روتین‌های روزانه</h2>
                 <p className="text-xs text-text-muted font-bold mt-1">تیک کارهای انجام شده را بزنید تا امتیاز بگیرید.</p>
               </div>
               
               {/* Filter Tabs Group */}
-              <div className="flex bg-zinc-100 dark:bg-slate-800/80 p-1 rounded-xl border border-zinc-200/50 dark:border-slate-800 self-start sm:self-auto">
+              <div className="flex bg-zinc-200/40 dark:bg-slate-800/30 p-1 rounded-2xl border border-card-border/50 self-start sm:self-auto">
                 <button
                   onClick={() => setFilter('all')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all duration-300 ${
                     filter === 'all'
-                      ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
+                      ? 'bg-white dark:bg-slate-800 text-primary shadow-sm scale-[1.02]'
                       : 'text-text-muted hover:text-text-main dark:hover:text-white'
                   }`}
                 >
-                  همه ({totalCount})
+                  همه (<span className="font-num">{totalCount}</span>)
                 </button>
                 <button
                   onClick={() => setFilter('remaining')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all duration-300 ${
                     filter === 'remaining'
-                      ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
+                      ? 'bg-white dark:bg-slate-800 text-primary shadow-sm scale-[1.02]'
                       : 'text-text-muted hover:text-text-main dark:hover:text-white'
                   }`}
                 >
-                  مانده ({remainingCount})
+                  مانده (<span className="font-num">{remainingCount}</span>)
                 </button>
                 <button
                   onClick={() => setFilter('done')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all duration-300 ${
                     filter === 'done'
-                      ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
+                      ? 'bg-white dark:bg-slate-800 text-primary shadow-sm scale-[1.02]'
                       : 'text-text-muted hover:text-text-main dark:hover:text-white'
                   }`}
                 >
-                  انجام شده ({completedCount})
+                  انجام شده (<span className="font-num">{completedCount}</span>)
                 </button>
               </div>
             </div>
@@ -230,7 +229,7 @@ export default function RoutinesView() {
             {/* Scroll container */}
             <div className="max-h-[380px] overflow-y-auto pr-2 space-y-3.5 scrollbar-thin">
               {filteredRoutines.length === 0 ? (
-                <div className="text-center py-14 text-text-muted font-bold bg-zinc-50/50 dark:bg-slate-800/20 border-2 border-dashed border-card-border rounded-3xl animate-pop">
+                <div className="text-center py-14 text-text-muted font-bold bg-zinc-50/20 dark:bg-slate-800/10 border border-dashed border-card-border rounded-3xl animate-pop">
                   <div className="text-5xl mb-3 select-none animate-float">🏄‍♂️🐰</div>
                   {filter === 'remaining'
                     ? 'تبریک! روتین مانده‌ای برای انجام وجود ندارد. 🏆'

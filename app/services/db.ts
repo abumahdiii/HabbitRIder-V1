@@ -1,6 +1,13 @@
 // Promise-based IndexedDB Service for HabbitRider
 // Fully async/await compatible and client-side safe.
 
+export interface RoutineResource {
+  id: string;
+  name: string;
+  url: string; // web URL or local PDF Data URI
+  type: 'link' | 'pdf';
+}
+
 export interface Routine {
   id: string;
   title: string;
@@ -10,10 +17,7 @@ export interface Routine {
     days?: number[]; // 0 for Sunday, 1 for Monday, etc.
     dayOfMonth?: number; // 1 to 31 for monthly schedule
   };
-  resources?: {
-    name: string;
-    url: string;
-  }[];
+  resources?: RoutineResource[];
   chapters?: {
     id: string;
     title: string;
@@ -24,6 +28,9 @@ export interface Routine {
   lastCompletedDate?: string; // YYYY-MM-DD
   createdAt: number;
   updatedAt: number;
+  isProgressive?: boolean;
+  currentProgressSession?: number;
+  totalProgressSessions?: number;
 }
 
 export interface UserProfile {

@@ -103,7 +103,12 @@ export default function RoutinesView() {
     loadRoutines();
   }, []);
 
-  const handleCreateRoutine = async (title: string, category: string, schedule: Routine['schedule']) => {
+  const handleCreateRoutine = async (
+    title: string,
+    category: string,
+    schedule: Routine['schedule'],
+    extraFields?: Partial<Routine>
+  ) => {
     const newRoutine: Routine = {
       id: 'routine_' + Math.random().toString(36).substring(2, 9),
       title,
@@ -111,6 +116,7 @@ export default function RoutinesView() {
       schedule,
       streak: 0,
       completedToday: false,
+      ...extraFields,
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
@@ -126,8 +132,40 @@ export default function RoutinesView() {
 
   const handleUpdateRoutine = async (updatedRoutine: Routine) => {
     try {
+      // Find old routine to see if completion state has changed
+      const oldRoutine = routines.find((r) => r.id === updatedRoutine.id);
+      const completionChanged = oldRoutine && oldRoutine.completedToday !== updatedRoutine.completedToday;
+
       await saveRoutine(updatedRoutine);
-      toast.success(`تغییرات روتین "${updatedRoutine.title}" ثبت شد! 📝`);
+
+      if (completionChanged) {
+        const nextCompleted = updatedRoutine.completedToday;
+        const xpChange = nextCompleted ? 15 : -15;
+        const streakChange = nextCompleted ? 1 : -1;
+
+        // Sync XP/Streak on Server
+        const res = await addXpAction(xpChange, streakChange);
+        if (res.success && res.data) {
+          // Sync context stats
+          syncUser(res.data);
+
+          // Sync local IndexedDB profile
+          const localProf = await getProfile();
+          if (localProf) {
+            const updatedLocalProf: UserProfile = {
+              ...localProf,
+              xp: res.data.xp,
+              level: res.data.level,
+              streak: res.data.streak,
+              updatedAt: Date.now(),
+            };
+            await saveProfile(updatedLocalProf);
+          }
+        }
+      } else {
+        toast.success(`تغییرات روتین "${updatedRoutine.title}" ثبت شد! 📝`);
+      }
+
       setEditingRoutine(null);
       await loadRoutines();
     } catch (err) {
@@ -373,6 +411,7 @@ export default function RoutinesView() {
                     onToggle={handleToggleRoutineCompletion}
                     onDelete={handleDeleteRoutine}
                     onEdit={setEditingRoutine}
+                    onUpdate={handleUpdateRoutine}
                   />
                 ))
               )}

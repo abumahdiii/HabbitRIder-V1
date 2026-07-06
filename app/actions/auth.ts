@@ -1,7 +1,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { findUserByUsername, createServerUser, updateUserDisplayName, updateUserProfile, getAllUsers, saveAllUsers, ServerUser } from '../services/serverDb';
+import { findUserByUsername, createServerUser, updateUserDisplayName, updateUserProfile, getAllUsers, saveAllUsers, ServerUser, saveCopyrightReport, CopyrightReport } from '../services/serverDb';
 
 const SESSION_COOKIE_NAME = 'habbitrider_session';
 
@@ -170,6 +170,45 @@ export async function addXpAction(xpAmount: number, streakChange: number = 0): P
     return { success: true, data: dbUser };
   }
   return { success: false, error: 'کاربر یافت نشد' };
+}
+
+export async function reportCopyrightAction(
+  routineId: string,
+  routineTitle: string,
+  resourceName: string,
+  resourceUrl: string,
+  reason: string
+): Promise<ActionState> {
+  logDebug(`Copyright report request: routineId=${routineId}, resource=${resourceName}`);
+  const user = await getAuthUser();
+  if (!user) {
+    logDebug('Copyright report failed: Unauthorized.');
+    return { success: false, error: 'شما لاگین نکرده‌اید.' };
+  }
+
+  if (!reason.trim()) {
+    return { success: false, error: 'دلیل گزارش نمی‌تواند خالی باشد.' };
+  }
+
+  const report: CopyrightReport = {
+    id: 'report_' + Math.random().toString(36).substring(2, 9),
+    routineId,
+    routineTitle,
+    resourceName,
+    resourceUrl,
+    reportedBy: user.username,
+    reason: reason.trim(),
+    createdAt: Date.now(),
+  };
+
+  try {
+    saveCopyrightReport(report);
+    logDebug(`Copyright report registered successfully for user ${user.username}`);
+    return { success: true };
+  } catch (err) {
+    logDebug('Error registering copyright report:', err);
+    return { success: false, error: 'خطا در ثبت گزارش تخلف کپی‌رایت.' };
+  }
 }
 
 

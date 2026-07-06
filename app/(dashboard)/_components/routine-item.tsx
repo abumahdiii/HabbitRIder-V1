@@ -7,9 +7,45 @@ interface RoutineItemProps {
   routine: Routine;
   onToggle: (routine: Routine) => void;
   onDelete: (id: string, title: string) => void;
+  onEdit: (routine: Routine) => void;
 }
 
-export default function RoutineItem({ routine, onToggle, onDelete }: RoutineItemProps) {
+const dayLabels: Record<number, string> = {
+  6: 'شنبه',
+  0: 'یکشنبه',
+  1: 'دوشنبه',
+  2: 'سه‌شنبه',
+  3: 'چهارشنبه',
+  4: 'پنجشنبه',
+  5: 'جمعه',
+};
+
+const sortPersianDays = (days: number[]) => {
+  const order = [6, 0, 1, 2, 3, 4, 5];
+  return [...days].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+};
+
+function getScheduleText(schedule: Routine['schedule']): string {
+  if (!schedule) return 'هر روز';
+  
+  switch (schedule.type) {
+    case 'daily':
+      return 'هر روز';
+    case 'weekly':
+    case 'custom':
+      if (!schedule.days || schedule.days.length === 0) return 'زمان‌بندی نشده';
+      if (schedule.days.length === 7) return 'هر روز';
+      const sortedDays = sortPersianDays(schedule.days);
+      const names = sortedDays.map(d => dayLabels[d]);
+      return `روزهای ${names.join('، ')}`;
+    case 'monthly':
+      return `روز ${schedule.dayOfMonth || 1}ام هر ماه`;
+    default:
+      return 'هر روز';
+  }
+}
+
+export default function RoutineItem({ routine, onToggle, onDelete, onEdit }: RoutineItemProps) {
   let categoryBadgeColor = 'bg-indigo-500/5 text-indigo-600 border-indigo-500/10 dark:bg-indigo-500/10 dark:text-indigo-400';
   if (routine.category === 'ورزش') {
     categoryBadgeColor = 'bg-emerald-500/5 text-emerald-600 border-emerald-500/10 dark:bg-emerald-500/10 dark:text-emerald-400';
@@ -54,24 +90,38 @@ export default function RoutineItem({ routine, onToggle, onDelete }: RoutineItem
           }`}>
             {routine.title}
           </div>
-          <span className={`text-[9px] border px-2 py-0.5 rounded-full font-black inline-block mt-1.5 ${categoryBadgeColor}`}>
-            {routine.category}
-          </span>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className={`text-[9px] border px-2 py-0.5 rounded-full font-black inline-block ${categoryBadgeColor}`}>
+              {routine.category}
+            </span>
+            <span className="text-[9px] font-bold text-text-muted dark:text-slate-400 flex items-center gap-1">
+              📅 {getScheduleText(routine.schedule)}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {/* Streak Badge */}
         {routine.streak > 0 && (
-          <span className="text-[10px] font-black text-accent-down dark:text-accent font-num flex items-center gap-1 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 px-2.5 py-1 rounded-xl">
-            🔥 {routine.streak} DAYS
+          <span className="text-[10px] font-black text-accent-down dark:text-accent font-num flex items-center gap-1 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 px-2 py-1 rounded-xl">
+            🔥 {routine.streak}
           </span>
         )}
         
+        {/* Edit Button */}
+        <button
+          onClick={() => onEdit(routine)}
+          className="p-2 text-text-muted hover:text-primary dark:hover:text-primary rounded-xl hover:bg-primary/10 transition-all duration-200 cursor-pointer text-xs"
+          aria-label={`ویرایش روتین ${routine.title}`}
+        >
+          ✏️
+        </button>
+
         {/* Delete Button */}
         <button
           onClick={() => onDelete(routine.id, routine.title)}
-          className="p-2 text-text-muted hover:text-danger dark:hover:text-rose-400 rounded-xl hover:bg-danger/10 dark:hover:bg-rose-500/10 transition-all duration-200 cursor-pointer"
+          className="p-2 text-text-muted hover:text-danger dark:hover:text-rose-400 rounded-xl hover:bg-danger/10 dark:hover:bg-rose-500/10 transition-all duration-200 cursor-pointer text-xs"
           aria-label={`حذف روتین ${routine.title}`}
         >
           🗑️

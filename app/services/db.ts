@@ -8,6 +8,7 @@ export interface Routine {
   schedule: {
     type: 'daily' | 'weekly' | 'monthly' | 'custom';
     days?: number[]; // 0 for Sunday, 1 for Monday, etc.
+    dayOfMonth?: number; // 1 to 31 for monthly schedule
   };
   resources?: {
     name: string;
@@ -20,6 +21,7 @@ export interface Routine {
   }[];
   streak: number;
   completedToday: boolean;
+  lastCompletedDate?: string; // YYYY-MM-DD
   createdAt: number;
   updatedAt: number;
 }

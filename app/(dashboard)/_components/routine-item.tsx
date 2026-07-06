@@ -2,8 +2,6 @@
 
 import React, { useState } from 'react';
 import { Routine, RoutineResource } from '../../services/db';
-import { reportCopyrightAction } from '../../actions/auth';
-import { toast } from 'sonner';
 
 interface RoutineItemProps {
   routine: Routine;
@@ -11,6 +9,7 @@ interface RoutineItemProps {
   onDelete: (id: string, title: string) => void;
   onEdit: (routine: Routine) => void;
   onUpdate?: (updatedRoutine: Routine) => Promise<void>;
+  onReportCopyright?: (routine: Routine, resource: RoutineResource) => void;
 }
 
 const dayLabels: Record<number, string> = {
@@ -48,11 +47,8 @@ function getScheduleText(schedule: Routine['schedule']): string {
   }
 }
 
-export default function RoutineItem({ routine, onToggle, onDelete, onEdit, onUpdate }: RoutineItemProps) {
+export default function RoutineItem({ routine, onToggle, onDelete, onEdit, onUpdate, onReportCopyright }: RoutineItemProps) {
   const [showChapters, setShowChapters] = useState(false);
-  const [reportResource, setReportResource] = useState<RoutineResource | null>(null);
-  const [reportReason, setReportReason] = useState('');
-  const [isReporting, setIsReporting] = useState(false);
 
   let categoryBadgeColor = 'bg-indigo-500/5 text-indigo-600 border-indigo-500/10 dark:bg-indigo-500/10 dark:text-indigo-400';
   if (routine.category === 'ورزش') {
@@ -90,7 +86,6 @@ export default function RoutineItem({ routine, onToggle, onDelete, onEdit, onUpd
       completedToday = true;
       lastCompletedDate = todayString();
       streak = routine.streak + 1;
-      toast.success('جلسه تکمیل شد! روتین امروز شما تیک خورد. 🎉');
     }
 
     const updatedRoutine: Routine = {
@@ -104,36 +99,6 @@ export default function RoutineItem({ routine, onToggle, onDelete, onEdit, onUpd
     };
 
     await onUpdate(updatedRoutine);
-  };
-
-  const handleSendReport = async () => {
-    if (!reportResource) return;
-    if (!reportReason.trim()) {
-      toast.error('لطفاً دلیل تخلف را بنویسید.');
-      return;
-    }
-
-    setIsReporting(true);
-    try {
-      const res = await reportCopyrightAction(
-        routine.id,
-        routine.title,
-        reportResource.name,
-        reportResource.url,
-        reportReason.trim()
-      );
-      if (res.success) {
-        toast.success('گزارش تخلف کپی‌رایت شما با موفقیت ثبت شد و بررسی خواهد شد. ⚠️');
-        setReportResource(null);
-        setReportReason('');
-      } else {
-        toast.error(res.error || 'خطا در ثبت گزارش تخلف. ❌');
-      }
-    } catch (err) {
-      toast.error('خطای سیستمی رخ داد. ❌');
-    } finally {
-      setIsReporting(false);
-    }
   };
 
   return (
@@ -228,7 +193,7 @@ export default function RoutineItem({ routine, onToggle, onDelete, onEdit, onUpd
                   <span className="truncate max-w-[120px]">{res.name}</span>
                 </a>
                 <button
-                  onClick={() => setReportResource(res)}
+                  onClick={() => onReportCopyright?.(routine, res)}
                   title="گزارش تخلف کپی‌رایت"
                   className="p-1 text-[10px] text-text-muted hover:text-danger rounded-md hover:bg-danger/10 transition-all cursor-pointer border-0 bg-transparent"
                 >
@@ -297,49 +262,6 @@ export default function RoutineItem({ routine, onToggle, onDelete, onEdit, onUpd
               )}
             </div>
           )}
-        </div>
-      )}
-
-      {/* Copyright violation report modal */}
-      {reportResource && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-pop">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full border border-card-border shadow-2xl space-y-4">
-            <h3 className="text-sm font-black text-text-main dark:text-slate-100 flex items-center gap-2">
-              <span>⚠️</span> گزارش نقض کپی‌رایت منبع
-            </h3>
-            <p className="text-xs text-text-muted font-medium">
-              در حال گزارش منبع <span className="font-bold text-text-main dark:text-slate-200">«{reportResource.name}»</span> مربوط به روتین <span className="font-bold text-text-main dark:text-slate-200">«{routine.title}»</span>.
-            </p>
-            <div className="space-y-2">
-              <label htmlFor="report-reason" className="block text-[11px] font-black text-text-muted">علت گزارش/نقض کپی‌رایت:</label>
-              <textarea
-                id="report-reason"
-                rows={3}
-                value={reportReason}
-                onChange={(e) => setReportReason(e.target.value)}
-                placeholder="مثال: این کتاب دارای کپی‌رایت رسمی است..."
-                className="w-full px-3 py-2 rounded-xl border border-card-border bg-zinc-500/5 text-text-main text-xs font-medium focus:border-primary focus:outline-none"
-              />
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => { setReportResource(null); setReportReason(''); }}
-                disabled={isReporting}
-                className="flex-1 py-2 bg-zinc-200 dark:bg-slate-800 text-text-main text-xs font-black rounded-xl cursor-pointer border-0"
-              >
-                انصراف
-              </button>
-              <button
-                type="button"
-                onClick={handleSendReport}
-                disabled={isReporting}
-                className="flex-1 py-2 bg-danger text-white text-xs font-black rounded-xl cursor-pointer shadow-md hover:bg-danger-down border-0"
-              >
-                {isReporting ? 'در حال ثبت...' : 'ثبت گزارش ⚠️'}
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </div>

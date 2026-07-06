@@ -8,9 +8,10 @@ import {
   saveProfile,
   getProfile,
   Routine,
-  UserProfile
+  UserProfile,
+  RoutineResource
 } from '../../services/db';
-import { addXpAction } from '../../actions/auth';
+import { addXpAction, reportCopyrightAction } from '../../actions/auth';
 import { useDashboard } from './dashboard-context';
 import RoutineItem from './routine-item';
 import AddRoutineForm from './add-routine-form';
@@ -49,6 +50,9 @@ export default function RoutinesView() {
   const [filter, setFilter] = useState<'all' | 'remaining' | 'done'>('all');
   const [viewMode, setViewMode] = useState<'today' | 'all'>('today');
   const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
+  const [reportingResource, setReportingResource] = useState<{ routine: Routine; resource: RoutineResource } | null>(null);
+  const [reportReason, setReportReason] = useState('');
+  const [isReporting, setIsReporting] = useState(false);
 
   const loadRoutines = async () => {
     try {
@@ -170,6 +174,36 @@ export default function RoutinesView() {
       await loadRoutines();
     } catch (err) {
       toast.error('خطا در بروزرسانی روتین. ❌');
+    }
+  };
+
+  const handleSendReport = async () => {
+    if (!reportingResource) return;
+    if (!reportReason.trim()) {
+      toast.error('لطفاً دلیل تخلف را بنویسید.');
+      return;
+    }
+
+    setIsReporting(true);
+    try {
+      const res = await reportCopyrightAction(
+        reportingResource.routine.id,
+        reportingResource.routine.title,
+        reportingResource.resource.name,
+        reportingResource.resource.url,
+        reportReason.trim()
+      );
+      if (res.success) {
+        toast.success('گزارش تخلف کپی‌رایت شما با موفقیت ثبت شد و بررسی خواهد شد. ⚠️');
+        setReportingResource(null);
+        setReportReason('');
+      } else {
+        toast.error(res.error || 'خطا در ثبت گزارش تخلف. ❌');
+      }
+    } catch (err) {
+      toast.error('خطای سیستمی رخ داد. ❌');
+    } finally {
+      setIsReporting(false);
     }
   };
 
@@ -412,6 +446,7 @@ export default function RoutinesView() {
                     onDelete={handleDeleteRoutine}
                     onEdit={setEditingRoutine}
                     onUpdate={handleUpdateRoutine}
+                    onReportCopyright={(rot, res) => setReportingResource({ routine: rot, resource: res })}
                   />
                 ))
               )}
@@ -420,6 +455,49 @@ export default function RoutinesView() {
           
         </div>
       </div>
+
+      {/* Copyright violation report modal */}
+      {reportingResource && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-pop">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full border border-card-border shadow-2xl space-y-4" dir="rtl">
+            <h3 className="text-sm font-black text-text-main dark:text-slate-100 flex items-center gap-2">
+              <span>⚠️</span> گزارش نقض کپی‌رایت منبع
+            </h3>
+            <p className="text-xs text-text-muted font-medium">
+              در حال گزارش منبع <span className="font-bold text-text-main dark:text-slate-200">«{reportingResource.resource.name}»</span> مربوط به روتین <span className="font-bold text-text-main dark:text-slate-200">«{reportingResource.routine.title}»</span>.
+            </p>
+            <div className="space-y-2">
+              <label htmlFor="report-reason" className="block text-[11px] font-black text-text-muted">علت گزارش/نقض کپی‌رایت:</label>
+              <textarea
+                id="report-reason"
+                rows={3}
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                placeholder="مثال: این کتاب دارای کپی‌رایت رسمی است..."
+                className="w-full px-3 py-2 rounded-xl border border-card-border bg-zinc-500/5 text-text-main text-xs font-medium focus:border-primary focus:outline-none"
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setReportingResource(null); setReportReason(''); }}
+                disabled={isReporting}
+                className="flex-1 py-2 bg-zinc-200 dark:bg-slate-800 text-text-main text-xs font-black rounded-xl cursor-pointer border-0"
+              >
+                انصراف
+              </button>
+              <button
+                type="button"
+                onClick={handleSendReport}
+                disabled={isReporting}
+                className="flex-1 py-2 bg-danger text-white text-xs font-black rounded-xl cursor-pointer shadow-md hover:bg-danger-down border-0"
+              >
+                {isReporting ? 'در حال ثبت...' : 'ثبت گزارش ⚠️'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
     </div>
   );

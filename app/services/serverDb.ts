@@ -15,7 +15,7 @@ export interface ServerUser {
 }
 
 // Helper for DEV_MODE logs
-function logDebug(message: string, ...args: any[]) {
+function logDebug(message: string, ...args: unknown[]) {
   if (process.env.DEV_MODE === 'true' || process.env.NEXT_PUBLIC_DEV_MODE === 'true') {
     console.log(`[SERVER DEBUG] ${message}`, ...args);
   }

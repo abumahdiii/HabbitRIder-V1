@@ -1,55 +1,74 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useActionState } from 'react';
 import { useRouter } from 'next/navigation';
-import { loginAction, signupAction } from '../actions/auth';
+import { loginAction, signupAction, ActionState } from '../actions/auth';
+import { useFormStatus } from 'react-dom';
+
+function SubmitButton({ isLogin }: { isLogin: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full btn-3d btn-3d-primary mt-4 disabled:opacity-50"
+    >
+      {pending ? 'در حال پردازش...' : isLogin ? 'ورود' : 'ثبت نام و ایجاد حساب'}
+    </button>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  // useActionState handles the submit action
+  const [state, formAction] = useActionState(
+    async (prevState: ActionState | null, formData: FormData) => {
+      const username = formData.get('username') as string;
+      const password = formData.get('password') as string;
+      const displayName = formData.get('displayName') as string;
 
-    try {
-      if (isLogin) {
-        const res = await loginAction(username, password);
-        if (res.success) {
-          router.push('/');
-          router.refresh();
-        } else {
-          setError(res.error || 'خطایی رخ داد.');
-        }
-      } else {
-        const res = await signupAction(username, password, displayName);
-        if (res.success) {
-          router.push('/');
-          router.refresh();
-        } else {
-          setError(res.error || 'خطایی رخ داد.');
-        }
+      if (!username || !username.trim()) {
+        return { success: false, error: 'نام کاربری الزامی است.' };
       }
-    } catch (err) {
-      setError('ارتباط با سرور برقرار نشد.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (!password) {
+        return { success: false, error: 'رمز عبور الزامی است.' };
+      }
+
+      try {
+        if (isLogin) {
+          const res = await loginAction(username, password);
+          if (res.success) {
+            router.push('/');
+            router.refresh();
+          }
+          return res;
+        } else {
+          if (!displayName || !displayName.trim()) {
+            return { success: false, error: 'نام نمایشی الزامی است.' };
+          }
+          const res = await signupAction(username, password, displayName);
+          if (res.success) {
+            router.push('/');
+            router.refresh();
+          }
+          return res;
+        }
+      } catch (err) {
+        console.error(err);
+        return { success: false, error: 'ارتباط با سرور برقرار نشد.' };
+      }
+    },
+    null
+  );
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center p-6 bg-zinc-50 dark:bg-zinc-900" dir="rtl">
       
       {/* Mascot and Title */}
       <div className="text-center mb-6">
-        <div className="text-6xl mb-2 animate-bounce">🐰</div>
+        <div className="text-6xl mb-2 animate-bounce select-none">🐰</div>
         <h1 className="text-3xl font-extrabold text-primary mb-1">هبیت رایدر | HabbitRider</h1>
         <p className="text-text-muted text-sm font-semibold">عادت‌هاتو سوار شو و رقابت کن!</p>
       </div>
@@ -58,7 +77,8 @@ export default function LoginPage() {
         {/* Tab Buttons */}
         <div className="flex border-b-2 border-card-border mb-6">
           <button
-            onClick={() => { setIsLogin(true); setError(''); }}
+            type="button"
+            onClick={() => { setIsLogin(true); }}
             className={`flex-1 py-3 text-center font-bold text-lg border-b-4 transition-all ${
               isLogin 
                 ? 'border-primary text-primary' 
@@ -68,7 +88,8 @@ export default function LoginPage() {
             ورود به حساب
           </button>
           <button
-            onClick={() => { setIsLogin(false); setError(''); }}
+            type="button"
+            onClick={() => { setIsLogin(false); }}
             className={`flex-1 py-3 text-center font-bold text-lg border-b-4 transition-all ${
               !isLogin 
                 ? 'border-primary text-primary' 
@@ -80,20 +101,22 @@ export default function LoginPage() {
         </div>
 
         {/* Error Alert */}
-        {error && (
+        {state?.error && (
           <div className="mb-4 p-3 rounded-xl bg-danger/10 border-2 border-danger text-danger text-sm font-bold text-center">
-            ⚠️ {error}
+            ⚠️ {state.error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form action={formAction} className="space-y-5">
           {!isLogin && (
             <div>
-              <label className="block text-sm font-bold text-text-main mb-2">نام نمایشی (لیدربرد):</label>
+              <label htmlFor="signup-displayname" className="block text-sm font-bold text-text-main mb-2">
+                نام نمایشی (لیدربرد):
+              </label>
               <input
+                id="signup-displayname"
+                name="displayName"
                 type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="نام شما در لیدربرد (مثل: خرگوش زرنگ)"
                 className="w-full p-3 rounded-xl border-2 border-card-border bg-background text-text-main focus:outline-none focus:border-primary transition-all font-semibold"
                 required={!isLogin}
@@ -102,11 +125,13 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label className="block text-sm font-bold text-text-main mb-2">نام کاربری:</label>
+            <label htmlFor="login-username" className="block text-sm font-bold text-text-main mb-2">
+              نام کاربری:
+            </label>
             <input
+              id="login-username"
+              name="username"
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
               placeholder="username"
               className="w-full p-3 rounded-xl border-2 border-card-border bg-background text-text-main focus:outline-none focus:border-primary transition-all font-semibold"
               required
@@ -114,24 +139,20 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-text-main mb-2">رمز عبور:</label>
+            <label htmlFor="login-password" className="block text-sm font-bold text-text-main mb-2">
+              رمز عبور:
+            </label>
             <input
+              id="login-password"
+              name="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full p-3 rounded-xl border-2 border-card-border bg-background text-text-main focus:outline-none focus:border-primary transition-all font-semibold"
               required
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full btn-3d btn-3d-primary mt-4"
-          >
-            {loading ? 'در حال پردازش...' : isLogin ? 'ورود' : 'ثبت نام و ایجاد حساب'}
-          </button>
+          <SubmitButton isLogin={isLogin} />
         </form>
       </div>
 

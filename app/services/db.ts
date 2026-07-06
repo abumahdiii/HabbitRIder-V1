@@ -41,11 +41,11 @@ const STORE_ROUTINES = 'routines';
 const STORE_PROFILE = 'profile';
 
 // Helper for DEV_MODE guarded logging
-function logDebug(message: string, ...args: any[]) {
+function logDebug(message: string, ...args: unknown[]) {
   if (
     process.env.NEXT_PUBLIC_DEV_MODE === 'true' ||
     process.env.DEV_MODE === 'true' ||
-    (typeof window !== 'undefined' && (window as any).DEV_MODE === true)
+    (typeof window !== 'undefined' && (window as Window & { DEV_MODE?: boolean }).DEV_MODE === true)
   ) {
     console.log(`[DEBUG] ${message}`, ...args);
   }

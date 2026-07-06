@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useActionState } from 'react';
+import React, { useState, useActionState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { loginAction, signupAction, ActionState } from '../actions/auth';
 import { useFormStatus } from 'react-dom';
+import { toast } from 'sonner';
 
 function SubmitButton({ isLogin }: { isLogin: boolean }) {
   const { pending } = useFormStatus();
@@ -71,6 +72,16 @@ export default function LoginPage() {
     null
   );
 
+  useEffect(() => {
+    if (!state) return;
+
+    if (state.success) {
+      toast.success(isLogin ? 'ورود با موفقیت انجام شد! 🚀' : 'ثبت‌نام با موفقیت انجام شد! 🏁');
+    } else if (state.error) {
+      toast.error(state.error);
+    }
+  }, [state, isLogin]);
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-zinc-50 dark:bg-slate-950 transition-colors duration-300" dir="rtl">
       
@@ -122,14 +133,6 @@ export default function LoginPage() {
             عضویت جدید
           </button>
         </div>
-
-        {/* Dynamic Warning Alert */}
-        {state?.error && (
-          <div className="mb-6 p-4 rounded-2xl bg-danger/10 border-2 border-danger/30 text-danger text-sm font-bold flex items-center gap-3 animate-pop">
-            <span className="text-xl">⚠️</span>
-            <div>{state.error}</div>
-          </div>
-        )}
 
         {/* Auth Form */}
         <form action={formAction} className="space-y-5">

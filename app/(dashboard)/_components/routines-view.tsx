@@ -14,13 +14,12 @@ import { addXpAction } from '../../actions/auth';
 import { useDashboard } from './dashboard-context';
 import RoutineItem from './routine-item';
 import AddRoutineForm from './add-routine-form';
+import { toast } from 'sonner';
 
 export default function RoutinesView() {
   const { syncUser } = useDashboard();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const [filter, setFilter] = useState<'all' | 'remaining' | 'done'>('all');
 
   const loadRoutines = async () => {
@@ -29,7 +28,7 @@ export default function RoutinesView() {
       setRoutines(list);
     } catch (err) {
       console.error(err);
-      setError('خطا در بارگذاری لیست روتین‌ها.');
+      toast.error('خطا در بارگذاری لیست روتین‌ها. ❌');
     } finally {
       setLoading(false);
     }
@@ -53,22 +52,20 @@ export default function RoutinesView() {
 
     try {
       await saveRoutine(newRoutine);
-      setMessage(`روتین "${newRoutine.title}" با موفقیت ذخیره شد!`);
-      setTimeout(() => setMessage(''), 3000);
+      toast.success(`روتین "${newRoutine.title}" با موفقیت ذخیره شد! ✅`);
       await loadRoutines();
     } catch (err) {
-      setError('خطا در ثبت روتین جدید.');
+      toast.error('خطا در ثبت روتین جدید. ❌');
     }
   };
 
   const handleDeleteRoutine = async (id: string, title: string) => {
     try {
       await deleteRoutine(id);
-      setMessage(`روتین "${title}" حذف گردید.`);
-      setTimeout(() => setMessage(''), 3000);
+      toast.success(`روتین "${title}" حذف گردید. 🗑️`);
       await loadRoutines();
     } catch (err) {
-      setError('خطا در حذف روتین.');
+      toast.error('خطا در حذف روتین. ❌');
     }
   };
 
@@ -106,19 +103,18 @@ export default function RoutinesView() {
           await saveProfile(updatedLocalProf);
         }
 
-        setMessage(
-          nextCompleted
-            ? 'آفرین! روتین انجام شد و ۱۵ امتیاز XP گرفتید! 🎉'
-            : 'عادت لغو شد. ۱۵ امتیاز کسر گردید.'
-        );
-        setTimeout(() => setMessage(''), 3000);
+        if (nextCompleted) {
+          toast.success('آفرین! روتین انجام شد و ۱۵ امتیاز XP گرفتید! 🎉');
+        } else {
+          toast.info('عادت لغو شد. ۱۵ امتیاز کسر گردید. ℹ️');
+        }
       } else {
-        setError(res.error || 'خطا در بروزرسانی امتیازات در سرور.');
+        toast.error(res.error || 'خطا در بروزرسانی امتیازات در سرور. ❌');
       }
       await loadRoutines();
     } catch (err) {
       console.error(err);
-      setError('خطا در تغییر وضعیت پیشرفت.');
+      toast.error('خطا در تغییر وضعیت پیشرفت. ❌');
     }
   };
 
@@ -153,19 +149,7 @@ export default function RoutinesView() {
 
   return (
     <div className="space-y-6">
-      
-      {/* Toast Alert Feedback */}
-      {message && (
-        <div className="p-4 rounded-2xl bg-secondary/15 border-2 border-secondary/35 text-secondary font-black text-center animate-pop">
-          {message}
-        </div>
-      )}
 
-      {error && (
-        <div className="p-4 rounded-2xl bg-danger/10 border-2 border-danger/30 text-danger font-black text-center animate-pop">
-          ⚠️ {error}
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         

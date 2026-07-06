@@ -6,6 +6,7 @@ import { updateProfileAction, ActionState } from '../../actions/auth';
 import { ServerUser } from '../../services/serverDb';
 import { useFormStatus } from 'react-dom';
 import { getProfile, saveProfile, UserProfile } from '../../services/db';
+import { toast } from 'sonner';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -47,7 +48,10 @@ export default function ProfileView({ username }: { username: string }) {
 
   // Sync changes with context and IndexedDB if the action succeeded
   useEffect(() => {
-    if (state?.success && state.data) {
+    if (!state) return;
+
+    if (state.success && state.data) {
+      toast.success('تغییرات پروفایل با موفقیت ثبت و همگام‌سازی شد! ✅');
       updateDisplayName(state.data.displayName);
       updateAvatar(state.data.avatar);
 
@@ -69,6 +73,8 @@ export default function ProfileView({ username }: { username: string }) {
         }
       };
       syncLocal();
+    } else if (!state.success && state.error) {
+      toast.error(state.error);
     }
   }, [state, updateDisplayName, updateAvatar]);
 
@@ -78,20 +84,6 @@ export default function ProfileView({ username }: { username: string }) {
       <h2 className="text-xl font-black mb-6 text-text-main dark:text-slate-100 flex items-center gap-2">
         <span>👤</span> تنظیمات حساب کاربری
       </h2>
-      
-      {state?.error && (
-        <div className="mb-6 p-4 rounded-2xl bg-danger/10 border-2 border-danger/30 text-danger text-sm font-bold flex items-center gap-3">
-          <span>⚠️</span>
-          <div>{state.error}</div>
-        </div>
-      )}
-
-      {state?.success && (
-        <div className="mb-6 p-4 rounded-2xl bg-primary/10 border-2 border-primary/30 text-primary text-sm font-bold flex items-center gap-3">
-          <span>✓</span>
-          <div>تغییرات پروفایل با موفقیت ثبت و همگام‌سازی شد!</div>
-        </div>
-      )}
 
       <form action={formAction} className="space-y-6">
         

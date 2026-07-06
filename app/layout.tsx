@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Vazirmatn } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const vazir = Vazirmatn({
@@ -25,6 +26,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans">
         {children}
+        <Toaster dir="rtl" richColors closeButton position="top-center" />
       </body>
     </html>
   );
